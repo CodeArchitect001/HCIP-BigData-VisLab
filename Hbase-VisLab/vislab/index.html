@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HBase 架构可视化 - VisLab</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 20px;">
+            <div style="text-align: left;">
+                <a href="storage.html" style="display: inline-flex; align-items: center; gap: 6px; color: #10b981; text-decoration: none; font-size: 0.9rem; padding: 8px 14px; border: 1px solid #10b981; border-radius: 6px; transition: all 0.25s;">
+                    <span style="font-size: 1.1rem;">&#128451;</span> 存储模型视图
+                </a>
+            </div>
+            <div style="text-align: center;">
+                <h1>HBase 架构可视化</h1>
+                <p class="subtitle">HCIP-Big Data Developer V2.0 | 交互式架构图</p>
+            </div>
+            <div style="text-align: right;">
+                <a href="elasticsearch.html" style="display: inline-flex; align-items: center; gap: 6px; color: #a855f7; text-decoration: none; font-size: 0.9rem; padding: 8px 14px; border: 1px solid #a855f7; border-radius: 6px; transition: all 0.25s;">
+                    <span style="font-size: 1.1rem;">&#128269;</span> Elasticsearch 视图
+                </a>
+            </div>
+        </header>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="flow-controls">
+                <button class="btn btn-primary" id="btn-write-flow" onclick="playFlow('write')">
+                    <span class="icon">&#128190;</span> 写入流程
+                </button>
+                <button class="btn btn-primary" id="btn-read-flow" onclick="playFlow('read')">
+                    <span class="icon">&#128214;</span> 读取流程
+                </button>
+                <button class="btn btn-secondary" id="btn-clear" onclick="clearFlow()">
+                    <span class="icon">&#128465;</span> 清除动画
+                </button>
+                <button class="btn btn-secondary" id="btn-reset" onclick="resetView()">
+                    <span class="icon">&#128260;</span> 重置视图
+                </button>
+            </div>
+            <div class="legend">
+                <div class="legend-item"><span class="dot dot-client"></span> 客户端层</div>
+                <div class="legend-item"><span class="dot dot-coord"></span> 协调层</div>
+                <div class="legend-item"><span class="dot dot-master"></span> 管理节点</div>
+                <div class="legend-item"><span class="dot dot-server"></span> 服务节点</div>
+                <div class="legend-item"><span class="dot dot-storage"></span> 存储层</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Architecture Diagram -->
+            <div class="diagram-area">
+                <svg class="connections" id="connections"></svg>
+
+                <!-- Flow Particles Container -->
+                <div class="particles-container" id="particles"></div>
+
+                <!-- Client Layer -->
+                <div class="layer layer-client">
+                    <div class="component" id="client" data-component="client" onclick="selectComponent('client')">
+                        <div class="component-header">
+                            <span class="component-icon">&#128187;</span>
+                            <span class="component-name">Client</span>
+                        </div>
+                        <div class="component-desc">客户端</div>
+                        <div class="component-tags">
+                            <span class="tag">访问接口</span>
+                            <span class="tag">RPC调用</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coordination Layer -->
+                <div class="layer layer-coord">
+                    <div class="component" id="zookeeper" data-component="zookeeper" onclick="selectComponent('zookeeper')">
+                        <div class="component-header">
+                            <span class="component-icon">&#128064;</span>
+                            <span class="component-name">ZooKeeper</span>
+                        </div>
+                        <div class="component-desc">协调服务</div>
+                        <div class="component-tags">
+                            <span class="tag">集群状态</span>
+                            <span class="tag">Master选举</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Master Layer -->
+                <div class="layer layer-master">
+                    <div class="component" id="hmaster" data-component="hmaster" onclick="selectComponent('hmaster')">
+                        <div class="component-header">
+                            <span class="component-icon">&#128170;</span>
+                            <span class="component-name">HMaster</span>
+                        </div>
+                        <div class="component-desc">主节点</div>
+                        <div class="component-tags">
+                            <span class="tag">BlockCache</span>
+                            <span class="tag">WAL</span>
+                            <span class="tag">Region管理</span>
+                            <span class="tag">读写处理</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RegionServer Layer -->
+                <div class="layer layer-server">
+                    <div class="component component-large" id="regionserver" data-component="regionserver" onclick="selectComponent('regionserver')">
+                        <div class="component-header">
+                            <span class="component-icon">&#127758;</span>
+                            <span class="component-name">HRegionServer</span>
+                        </div>
+                        <div class="component-desc">区域服务器 - 处理实际读写请求</div>
+
+                        <!-- RegionServer 直接子组件：BlockCache / WAL / HRegion -->
+                        <div class="rs-internals">
+                            <div class="rs-level1">
+                                <div class="sub-component" id="blockcache" data-component="blockcache">
+                                    <div class="sub-header">
+                                        <span class="sub-icon">&#128218;</span>
+                                        <span>BlockCache</span>
+                                    </div>
+                                    <div class="sub-desc">读缓存，所有 Region 共享</div>
+                                </div>
+                                <div class="sub-component" id="wal" data-component="wal">
+                                    <div class="sub-header">
+                                        <span class="sub-icon">&#128220;</span>
+                                        <span>WAL / HLog</span>
+                                    </div>
+                                    <div class="sub-desc">预写日志，保证数据可靠</div>
+                                </div>
+                            </div>
+
+                            <div class="sub-component rs-hregion" id="hregion" data-component="hregion">
+                                <div class="sub-header">
+                                    <span class="sub-icon">&#128451;</span>
+                                    <span>HRegion</span>
+                                </div>
+                                <div class="sub-desc">数据分片单元</div>
+
+                                <div class="store-wrapper" id="store" data-component="store">
+                                    <div class="store-header">
+                                        <span class="sub-icon">&#128194;</span>
+                                        <span>Store（列族存储单元）</span>
+                                    </div>
+                                    <div class="store-internals">
+                                        <div class="store-item" id="memstore" data-component="memstore">
+                                            <div class="store-item-name">MemStore</div>
+                                            <div class="store-item-desc">内存写缓存</div>
+                                        </div>
+                                        <div class="store-item" id="storefile" data-component="storefile">
+                                            <div class="store-item-name">StoreFile / HFile</div>
+                                            <div class="store-item-desc">磁盘数据文件</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Storage Layer -->
+                <div class="layer layer-storage">
+                    <div class="component" id="hdfs" data-component="hdfs" onclick="selectComponent('hdfs')">
+                        <div class="component-header">
+                            <span class="component-icon">&#128190;</span>
+                            <span class="component-name">HDFS</span>
+                        </div>
+                        <div class="component-desc">底层分布式文件系统</div>
+                        <div class="component-tags">
+                            <span class="tag">NameNode</span>
+                            <span class="tag">DataNode</span>
+                            <span class="tag">3副本</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Panel -->
+            <div class="detail-panel" id="detailPanel">
+                <div class="panel-header">
+                    <h2 id="panelTitle">组件详情</h2>
+                    <p id="panelSubtitle">点击架构图中的组件查看详细信息</p>
+                </div>
+                <div class="panel-content" id="panelContent">
+                    <div class="empty-state">
+                        <div class="empty-icon">&#128269;</div>
+                        <p>点击左侧架构图中的任意组件</p>
+                        <p class="empty-hint">查看该组件的详细信息、职责和与其他组件的关系</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Write Flow Description -->
+        <div class="flow-description" id="writeFlowDesc" style="display: none;">
+            <h3>写入流程（Write Path）</h3>
+            <div class="flow-steps">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-text">Client 向 ZooKeeper 获取目标 Region 位置</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-text">Client 直接向 HRegionServer 发送 Put 请求</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-text">数据先写入 WAL / HLog（预写日志）保证可靠性</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <div class="step-text">数据写入 MemStore（内存写缓存）</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">5</div>
+                    <div class="step-text">MemStore 达到阈值后刷写（Flush）到 StoreFile / HFile</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">6</div>
+                    <div class="step-text">HFile 最终持久化存储到 HDFS</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Read Flow Description -->
+        <div class="flow-description" id="readFlowDesc" style="display: none;">
+            <h3>读取流程（Read Path）</h3>
+            <div class="flow-steps">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-text">Client 向 ZooKeeper 获取目标 Region 位置</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-text">Client 直接向 HRegionServer 发送 Get 请求</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-text">先查 MemStore（最新写入的数据，RowKey 内存有序）</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <div class="step-text">再查 BlockCache（读缓存，缓存热点 HFile 数据块）</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">5</div>
+                    <div class="step-text">若未命中，读取 StoreFile / HFile（磁盘文件）</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">6</div>
+                    <div class="step-text">结果合并后返回给 Client</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

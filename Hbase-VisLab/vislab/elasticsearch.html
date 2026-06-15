@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elasticsearch 架构可视化 - VisLab</title>
+    <link rel="stylesheet" href="css/elasticsearch.css">
+</head>
+<body class="es-page">
+    <!-- Top bar: back to HBase -->
+    <div class="es-top-nav">
+        <div class="es-nav-brand">
+            <span class="es-logo">ES</span>
+            <span>Elasticsearch 架构可视化</span>
+        </div>
+        <a href="index.html" class="es-back-link">
+            <span>&#8592;</span> 返回 HBase 架构图
+        </a>
+    </div>
+
+    <!-- In-page navigation -->
+    <nav class="es-navbar">
+        <ul class="es-nav-links">
+            <li><a href="#es-overview">概览</a></li>
+            <li><a href="#es-architecture">架构</a></li>
+            <li><a href="#es-concepts">核心概念</a></li>
+            <li><a href="#es-inverted-index">倒排索引</a></li>
+            <li><a href="#es-index-flow">索引流程</a></li>
+            <li><a href="#es-search-flow">搜索流程</a></li>
+            <li><a href="#es-elk">ELK生态</a></li>
+            <li><a href="#es-optimization">性能优化</a></li>
+            <li><a href="#es-commands">命令速查</a></li>
+        </ul>
+        <div class="es-nav-toggle">&#9776;</div>
+    </nav>
+
+    <!-- Hero -->
+    <section id="es-overview" class="es-hero es-section">
+        <div class="es-hero-content">
+            <h1>Elasticsearch</h1>
+            <p class="es-subtitle">高性能分布式全文检索引擎</p>
+            <div class="es-features-grid">
+                <div class="es-feature-card">
+                    <div class="es-feature-icon">&#9889;</div>
+                    <h3>高性能</h3>
+                    <p>基于 Lucene 倒排索引，查询速度快</p>
+                </div>
+                <div class="es-feature-card">
+                    <div class="es-feature-icon">&#127942;</div>
+                    <h3>扩展性</h3>
+                    <p>分布式架构，支持水平扩展</p>
+                </div>
+                <div class="es-feature-card">
+                    <div class="es-feature-icon">&#128269;</div>
+                    <h3>相关度</h3>
+                    <p>基于 TF-IDF/BM25 算法计算相关性评分</p>
+                </div>
+                <div class="es-feature-card">
+                    <div class="es-feature-icon">&#128274;</div>
+                    <h3>可靠性</h3>
+                    <p>支持分片和副本机制，保证数据可靠</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 应用场景 -->
+    <section class="es-scenarios">
+        <div class="es-section">
+            <h2 class="es-section-title">应用场景</h2>
+            <div class="es-scenario-grid">
+                <div class="es-scenario-card">
+                    <div class="es-scenario-icon">&#128220;</div>
+                    <h3>日志搜索分析</h3>
+                    <p>海量日志实时检索与分析</p>
+                </div>
+                <div class="es-scenario-card">
+                    <div class="es-scenario-icon">&#127758;</div>
+                    <h3>时空检索</h3>
+                    <p>地理位置与时间维度查询</p>
+                </div>
+                <div class="es-scenario-card">
+                    <div class="es-scenario-icon">&#128200;</div>
+                    <h3>时序检索</h3>
+                    <p>时间序列数据高效查询</p>
+                </div>
+                <div class="es-scenario-card">
+                    <div class="es-scenario-icon">&#129504;</div>
+                    <h3>智能搜索</h3>
+                    <p>语义理解与智能推荐</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 整体架构 -->
+    <section id="es-architecture" class="es-architecture">
+        <div class="es-section">
+            <h2 class="es-section-title">整体架构</h2>
+            <div class="es-arch-container">
+                <div class="es-arch-layer client-layer">
+                    <div class="es-layer-label">客户端层</div>
+                    <div class="es-nodes-row">
+                        <div class="es-arch-node es-client" data-info="Client: 发送搜索/索引请求到集群">
+                            <div class="es-node-title">Client</div>
+                            <div class="es-node-desc">客户端</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="es-arch-arrow">&#8595;</div>
+                <div class="es-arch-layer master-layer">
+                    <div class="es-layer-label">主节点层</div>
+                    <div class="es-nodes-row">
+                        <div class="es-arch-node es-master" data-info="EsMaster: 管理集群元数据、索引创建、分片分配">
+                            <div class="es-node-title">Master Node</div>
+                            <div class="es-node-desc">主节点</div>
+                            <div class="es-node-detail">元数据管理<br>分片分配</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="es-arch-arrow">&#8595;</div>
+                <div class="es-arch-layer data-layer">
+                    <div class="es-layer-label">数据节点层</div>
+                    <div class="es-nodes-row">
+                        <div class="es-arch-node es-data-node" data-info="Data Node: 存储分片数据，执行 CRUD 和搜索操作">
+                            <div class="es-node-title">Data Node 1</div>
+                            <div class="es-shard-box primary">Shard P1</div>
+                            <div class="es-shard-box replica">Replica R2</div>
+                        </div>
+                        <div class="es-arch-node es-data-node" data-info="Data Node: 存储分片数据，执行 CRUD 和搜索操作">
+                            <div class="es-node-title">Data Node 2</div>
+                            <div class="es-shard-box primary">Shard P2</div>
+                            <div class="es-shard-box replica">Replica R1</div>
+                        </div>
+                        <div class="es-arch-node es-data-node" data-info="Data Node: 存储分片数据，执行 CRUD 和搜索操作">
+                            <div class="es-node-title">Data Node 3</div>
+                            <div class="es-shard-box primary">Shard P3</div>
+                            <div class="es-shard-box replica">Replica R3</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="es-arch-arrow">&#8595;</div>
+                <div class="es-arch-layer storage-layer">
+                    <div class="es-layer-label">持久化存储</div>
+                    <div class="es-nodes-row">
+                        <div class="es-arch-node es-storage" data-info="磁盘: 底层数据持久化存储">
+                            <div class="es-node-title">Disk</div>
+                            <div class="es-node-desc">持久化存储</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="es-arch-info-panel" id="es-arch-info">
+                <p>点击架构节点查看详细信息</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 核心概念 -->
+    <section id="es-concepts" class="es-section">
+        <h2 class="es-section-title">核心概念</h2>
+        <div class="es-concept-grid">
+            <div class="es-concept-card">
+                <div class="es-concept-header">
+                    <span class="es-concept-badge">Index</span>
+                    <span class="es-concept-analogy">类比：数据库</span>
+                </div>
+                <p>逻辑命名空间，用于存储相关文档的集合。类似关系型数据库中的 database。</p>
+            </div>
+            <div class="es-concept-card">
+                <div class="es-concept-header">
+                    <span class="es-concept-badge">Type</span>
+                    <span class="es-concept-analogy">类比：表</span>
+                </div>
+                <p>文档的分类/类型。在 6.x 后逐步废弃，7.x+ 默认使用 <code>_doc</code>。</p>
+            </div>
+            <div class="es-concept-card">
+                <div class="es-concept-header">
+                    <span class="es-concept-badge">Document</span>
+                    <span class="es-concept-analogy">类比：行记录</span>
+                </div>
+                <p>可被索引的基本单位，JSON 格式。每个文档都有唯一的 ID。</p>
+            </div>
+            <div class="es-concept-card">
+                <div class="es-concept-header">
+                    <span class="es-concept-badge">Mapping</span>
+                    <span class="es-concept-analogy">类比：Schema</span>
+                </div>
+                <p>定义字段的数据类型和约束。类似数据库的表结构定义。</p>
+            </div>
+            <div class="es-concept-card">
+                <div class="es-concept-header">
+                    <span class="es-concept-badge">Shard</span>
+                    <span class="es-concept-analogy">分片</span>
+                </div>
+                <p>索引的数据分片，分布式存储的基本单位。支持水平扩展。</p>
+            </div>
+            <div class="es-concept-card">
+                <div class="es-concept-header">
+                    <span class="es-concept-badge">Replica</span>
+                    <span class="es-concept-analogy">副本</span>
+                </div>
+                <p>分片的副本，提供高可用和读扩展。建议至少 1 个副本。</p>
+            </div>
+        </div>
+
+        <div class="es-mapping-demo">
+            <h3>Mapping 示例</h3>
+            <div class="es-code-block">
+<pre>{
+  "mappings": {
+    "properties": {
+      "title":    { "type": "text" },
+      "content":  { "type": "text" },
+      "author":   { "type": "keyword" },
+      "date":     { "type": "date" },
+      "views":    { "type": "integer" }
+    }
+  }
+}</pre>
+            </div>
+            <div class="es-mapping-legend">
+                <div class="es-legend-item"><span class="es-legend-color text"></span>text: 全文检索（分词）</div>
+                <div class="es-legend-item"><span class="es-legend-color keyword"></span>keyword: 精确匹配（不分词）</div>
+                <div class="es-legend-item"><span class="es-legend-color date"></span>date: 日期类型</div>
+                <div class="es-legend-item"><span class="es-legend-color number"></span>integer: 数值类型</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 倒排索引 -->
+    <section id="es-inverted-index" class="es-inverted-index">
+        <div class="es-section">
+            <h2 class="es-section-title">倒排索引 (Inverted Index)</h2>
+            <p class="es-section-desc">通过 Value 找 Key 的索引结构，全文检索的核心数据结构</p>
+
+            <div class="es-index-comparison">
+                <div class="es-index-type">
+                    <h3>正排索引 (Forward Index)</h3>
+                    <div class="es-index-table">
+                        <table>
+                            <tr><th>文档ID</th><th>内容</th></tr>
+                            <tr><td>Doc1</td><td>Elasticsearch 是搜索引擎</td></tr>
+                            <tr><td>Doc2</td><td>Lucene 是搜索内核</td></tr>
+                            <tr><td>Doc3</td><td>搜索引擎很快</td></tr>
+                        </table>
+                    </div>
+                    <p class="es-index-note">Key → Value（文档ID → 内容）</p>
+                </div>
+                <div class="es-index-arrow">&#8649;</div>
+                <div class="es-index-type">
+                    <h3>倒排索引 (Inverted Index)</h3>
+                    <div class="es-index-table">
+                        <table>
+                            <tr><th>词项</th><th>文档列表</th></tr>
+                            <tr><td>Elasticsearch</td><td>Doc1</td></tr>
+                            <tr><td>搜索引擎</td><td>Doc1, Doc3</td></tr>
+                            <tr><td>Lucene</td><td>Doc2</td></tr>
+                            <tr><td>内核</td><td>Doc2</td></tr>
+                            <tr><td>很快</td><td>Doc3</td></tr>
+                        </table>
+                    </div>
+                    <p class="es-index-note">Value → Key（词项 → 文档ID列表）</p>
+                </div>
+            </div>
+
+            <div class="es-search-demo">
+                <h3>交互式搜索演示</h3>
+                <div class="es-search-box">
+                    <input type="text" id="es-demo-search" placeholder="输入关键词搜索（如：搜索引擎）...">
+                    <button onclick="esDemoSearch()">搜索</button>
+                </div>
+                <div class="es-demo-docs">
+                    <div class="es-demo-doc" data-words="Elasticsearch,是,搜索引擎">
+                        <strong>Doc1:</strong> Elasticsearch 是搜索引擎
+                    </div>
+                    <div class="es-demo-doc" data-words="Lucene,是,搜索,内核">
+                        <strong>Doc2:</strong> Lucene 是搜索内核
+                    </div>
+                    <div class="es-demo-doc" data-words="搜索引擎,很快">
+                        <strong>Doc3:</strong> 搜索引擎很快
+                    </div>
+                </div>
+                <div id="es-demo-result"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 索引流程 -->
+    <section id="es-index-flow" class="es-section">
+        <h2 class="es-section-title">索引流程 (Index Flow)</h2>
+        <div class="es-flow-controls">
+            <button class="es-btn-play" onclick="esPlayIndexFlow()">&#9654; 播放动画</button>
+            <button class="es-btn-reset" onclick="esResetIndexFlow()">&#8634; 重置</button>
+        </div>
+        <div class="es-flow-container" id="es-index-flow-container">
+            <div class="es-flow-step" id="es-idx-step1">
+                <div class="es-step-num">1</div>
+                <div class="es-step-title">客户端请求</div>
+                <div class="es-step-desc">发送索引请求到任意节点</div>
+            </div>
+            <div class="es-flow-arrow">&#8594;</div>
+            <div class="es-flow-step" id="es-idx-step2">
+                <div class="es-step-num">2</div>
+                <div class="es-step-title">路由转发</div>
+                <div class="es-step-desc">根据 _routing 计算目标分片</div>
+            </div>
+            <div class="es-flow-arrow">&#8594;</div>
+            <div class="es-flow-step" id="es-idx-step3">
+                <div class="es-step-num">3</div>
+                <div class="es-step-title">主分片写入</div>
+                <div class="es-step-desc">Primary Shard 执行写入</div>
+            </div>
+            <div class="es-flow-arrow">&#8594;</div>
+            <div class="es-flow-step" id="es-idx-step4">
+                <div class="es-step-num">4</div>
+                <div class="es-step-title">并行复制</div>
+                <div class="es-step-desc">复制到 Replica Shard</div>
+            </div>
+            <div class="es-flow-arrow">&#8594;</div>
+            <div class="es-flow-step" id="es-idx-step5">
+                <div class="es-step-num">5</div>
+                <div class="es-step-title">确认返回</div>
+                <div class="es-step-desc">收到副本确认，返回客户端</div>
+            </div>
+        </div>
+        <div class="es-flow-detail" id="es-index-detail">
+            <p>点击播放查看索引流程</p>
+        </div>
+    </section>
+
+    <!-- 搜索流程 -->
+    <section id="es-search-flow" class="es-search-flow">
+        <div class="es-section">
+            <h2 class="es-section-title">搜索流程 (Search Flow)</h2>
+            <p class="es-section-desc">两阶段搜索：Query Phase + Fetch Phase</p>
+            <div class="es-flow-controls">
+                <button class="es-btn-play" onclick="esPlaySearchFlow()">&#9654; 播放动画</button>
+                <button class="es-btn-reset" onclick="esResetSearchFlow()">&#8634; 重置</button>
+            </div>
+            <div class="es-search-phases">
+                <div class="es-phase" id="es-query-phase">
+                    <h3>阶段一：Query Phase</h3>
+                    <div class="es-phase-flow">
+                        <div class="es-phase-node coord">协调节点</div>
+                        <div class="es-phase-arrow">&#8594;</div>
+                        <div class="es-phase-nodes">
+                            <div class="es-phase-node shard">Shard 1</div>
+                            <div class="es-phase-node shard">Shard 2</div>
+                            <div class="es-phase-node shard">Shard 3</div>
+                        </div>
+                        <div class="es-phase-arrow">&#8594;</div>
+                        <div class="es-phase-node result">文档ID + 评分</div>
+                    </div>
+                    <p>协调节点将查询分发到各分片，收集文档ID和评分</p>
+                </div>
+                <div class="es-phase-arrow-down">&#8595;</div>
+                <div class="es-phase" id="es-fetch-phase">
+                    <h3>阶段二：Fetch Phase</h3>
+                    <div class="es-phase-flow">
+                        <div class="es-phase-node coord">协调节点</div>
+                        <div class="es-phase-arrow">&#8594;</div>
+                        <div class="es-phase-nodes">
+                            <div class="es-phase-node shard">Shard 1</div>
+                            <div class="es-phase-node shard">Shard 2</div>
+                            <div class="es-phase-node shard">Shard 3</div>
+                        </div>
+                        <div class="es-phase-arrow">&#8594;</div>
+                        <div class="es-phase-node result">完整文档内容</div>
+                    </div>
+                    <p>协调节点根据ID获取完整文档内容，汇总排序后返回</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ELK 生态 -->
+    <section id="es-elk" class="es-elk">
+        <div class="es-section">
+            <h2 class="es-section-title">ELK / ELKB 生态圈</h2>
+            <div class="es-elk-stack">
+                <div class="es-elk-component">
+                    <div class="es-elk-icon beats">Beats</div>
+                    <div class="es-elk-desc">轻量级数据采集器</div>
+                    <div class="es-elk-detail">Filebeat / Metricbeat<br>Packetbeat / Heartbeat</div>
+                </div>
+                <div class="es-elk-arrow">&#8594;</div>
+                <div class="es-elk-component">
+                    <div class="es-elk-icon logstash">Logstash</div>
+                    <div class="es-elk-desc">数据收集和处理管道</div>
+                    <div class="es-elk-detail">数据解析 / 转换 / 过滤<br>多输入输出支持</div>
+                </div>
+                <div class="es-elk-component main">
+                    <div class="es-elk-icon es">Elasticsearch</div>
+                    <div class="es-elk-desc">搜索和数据分析引擎</div>
+                    <div class="es-elk-detail">存储 / 索引 / 搜索<br>聚合分析</div>
+                </div>
+                <div class="es-elk-arrow">&#8594;</div>
+                <div class="es-elk-component">
+                    <div class="es-elk-icon kibana">Kibana</div>
+                    <div class="es-elk-desc">数据可视化平台</div>
+                    <div class="es-elk-detail">仪表板 / 图表<br>实时监控 / 报警</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 缓存机制 -->
+    <section class="es-cache">
+        <div class="es-section">
+            <h2 class="es-section-title">缓存机制</h2>
+            <div class="es-cache-grid">
+                <div class="es-cache-card">
+                    <h3>Query Cache</h3>
+                    <span class="es-cache-level">Node 级</span>
+                    <p>缓存查询结果，节点级别共享</p>
+                </div>
+                <div class="es-cache-card">
+                    <h3>Fielddata Cache</h3>
+                    <span class="es-cache-level">分片级</span>
+                    <p>缓存分词字段数据，用于聚合和排序</p>
+                </div>
+                <div class="es-cache-card">
+                    <h3>Request Cache</h3>
+                    <span class="es-cache-level">Shard 级</span>
+                    <p>缓存分片级请求结果，每个分片独立缓存</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 性能优化 -->
+    <section id="es-optimization" class="es-optimization">
+        <div class="es-section">
+            <h2 class="es-section-title">性能优化</h2>
+            <div class="es-opt-sections">
+                <div class="es-opt-section">
+                    <h3>分片与副本配置</h3>
+                    <table class="es-opt-table">
+                        <tr><th>优化项</th><th>建议值</th><th>说明</th></tr>
+                        <tr><td>分片数</td><td>不超过节点数的3倍</td><td>避免过多分片消耗资源</td></tr>
+                        <tr><td>副本数</td><td>建议 1 个</td><td>保证高可用的最小副本数</td></tr>
+                        <tr><td>分片最大容量</td><td>不超过 32GB</td><td>超过会影响性能和恢复速度</td></tr>
+                    </table>
+                </div>
+                <div class="es-opt-section">
+                    <h3>快速平衡配置</h3>
+                    <table class="es-opt-table">
+                        <tr><th>配置参数</th><th>作用</th></tr>
+                        <tr>
+                            <td><code>cluster.routing.allocation.cluster_concurrent_rebalance</code></td>
+                            <td>控制集群并发重平衡的分片数量</td>
+                        </tr>
+                        <tr>
+                            <td><code>indices.recovery.max_bytes_per_sec</code></td>
+                            <td>控制分片恢复的最大传输速率</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="es-opt-section">
+                    <h3>Mapping 类型选择</h3>
+                    <table class="es-opt-table">
+                        <tr><th>类型</th><th>用途</th><th>说明</th></tr>
+                        <tr><td><code>keyword</code></td><td>精确匹配</td><td>身份证号、姓名等，不分词</td></tr>
+                        <tr><td><code>text</code></td><td>全文检索</td><td>地址、描述等，会分词</td></tr>
+                        <tr><td><code>date</code></td><td>时间范围</td><td>用于时间范围查询</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 命令速查 -->
+    <section id="es-commands" class="es-commands">
+        <div class="es-section">
+            <h2 class="es-section-title">命令速查</h2>
+            <div class="es-cmd-tabs">
+                <button class="es-cmd-tab active" data-tab="rest" onclick="esShowCmdTab('rest')">REST API</button>
+                <button class="es-cmd-tab" data-tab="java" onclick="esShowCmdTab('java')">Java API</button>
+            </div>
+            <div class="es-cmd-content active" id="es-rest-cmds">
+                <table class="es-cmd-table">
+                    <tr><th>操作</th><th>HTTP方法</th><th>命令示例</th></tr>
+                    <tr>
+                        <td>查看集群健康</td>
+                        <td><span class="es-http-get">GET</span></td>
+                        <td><code>GET /_cluster/health</code></td>
+                    </tr>
+                    <tr>
+                        <td>新建索引</td>
+                        <td><span class="es-http-put">PUT</span></td>
+                        <td><code>PUT /index_name</code></td>
+                    </tr>
+                    <tr>
+                        <td>写入数据</td>
+                        <td><span class="es-http-post">POST</span></td>
+                        <td><code>POST /index/_doc/id -d '{...}'</code></td>
+                    </tr>
+                    <tr>
+                        <td>查询数据</td>
+                        <td><span class="es-http-get">GET</span></td>
+                        <td><code>GET /index/_search -d '{...}'</code></td>
+                    </tr>
+                    <tr>
+                        <td>删除索引</td>
+                        <td><span class="es-http-del">DELETE</span></td>
+                        <td><code>DELETE /index_name</code></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="es-cmd-content" id="es-java-cmds">
+                <h3>RestClient (推荐)</h3>
+                <div class="es-code-block">
+<pre>// 构建客户端
+RestClient client = RestClient.builder(
+    new HttpHost("host", 9200)
+).build();
+
+// 创建索引 - PUT /{index}
+// 删除索引 - DELETE /{index}
+// 查询文档 - GET /{index}/_doc/{id} 或 /{index}/_search</pre>
+                </div>
+                <h3>QueryBuilder</h3>
+                <div class="es-code-block">
+<pre>QueryBuilders.termQuery("field", "value");      // 精确匹配
+QueryBuilders.matchQuery("field", "text");      // 分词匹配
+QueryBuilders.boolQuery()                        // 布尔组合
+    .must(QueryBuilders.termQuery("f1", "v1"))
+    .filter(QueryBuilders.rangeQuery("age").gte(18));</pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 内部架构层次 -->
+    <section class="es-internal-arch">
+        <div class="es-section">
+            <h2 class="es-section-title">内部架构层次</h2>
+            <div class="es-layer-stack">
+                <div class="es-layer-item">
+                    <span class="es-layer-name">RESTful API</span>
+                    <span class="es-layer-desc">对外提供 RESTful 接口</span>
+                </div>
+                <div class="es-layer-item">
+                    <span class="es-layer-name">Transport / Http / Thrift</span>
+                    <span class="es-layer-desc">通信协议层</span>
+                </div>
+                <div class="es-layer-item">
+                    <span class="es-layer-name">Discovery / Scripting / Plugins</span>
+                    <span class="es-layer-desc">节点发现、脚本、插件扩展</span>
+                </div>
+                <div class="es-layer-item">
+                    <span class="es-layer-name">Index Module / Search Module</span>
+                    <span class="es-layer-desc">索引模块 / 搜索模块</span>
+                </div>
+                <div class="es-layer-item">
+                    <span class="es-layer-name">Gateway</span>
+                    <span class="es-layer-desc">数据持久化网关</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="es-footer">
+        <p>基于 HCIP-Big Data Developer V2.0 知识体系构建 | Elasticsearch 架构可视化</p>
+    </footer>
+
+    <script src="js/elasticsearch.js"></script>
+</body>
+</html>

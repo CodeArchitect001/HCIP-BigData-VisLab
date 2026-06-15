@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HBase 存储模型可视化 - VisLab</title>
+    <link rel="stylesheet" href="css/storage.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <a href="index.html" class="back-link">
+                    <span class="icon">&#8592;</span> 返回架构图
+                </a>
+            </div>
+            <div class="header-center">
+                <h1>HBase 存储模型可视化</h1>
+                <p class="subtitle">HCIP-Big Data Developer V2.0 | KeyValue 结构与物理存储</p>
+            </div>
+            <div class="header-right">
+                <a href="elasticsearch.html" style="display: inline-flex; align-items: center; gap: 6px; color: #a855f7; text-decoration: none; font-size: 0.9rem; padding: 8px 14px; border: 1px solid #a855f7; border-radius: 6px; transition: all 0.25s;">
+                    <span style="font-size: 1.1rem;">&#128269;</span> Elasticsearch 视图
+                </a>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="rowcol" onclick="switchTab('rowcol')">
+                <span class="tab-icon">&#128200;</span> 行式 vs 列式
+            </button>
+            <button class="tab" data-tab="keyvalue" onclick="switchTab('keyvalue')">
+                <span class="tab-icon">&#128451;</span> KeyValue 结构
+            </button>
+            <button class="tab" data-tab="logical" onclick="switchTab('logical')">
+                <span class="tab-icon">&#128210;</span> 逻辑存储视图
+            </button>
+            <button class="tab" data-tab="physical" onclick="switchTab('physical')">
+                <span class="tab-icon">&#128190;</span> 物理存储视图
+            </button>
+            <button class="tab" data-tab="rowkey" onclick="switchTab('rowkey')">
+                <span class="tab-icon">&#128273;</span> RowKey 设计
+            </button>
+            <button class="tab" data-tab="hfile" onclick="switchTab('hfile')">
+                <span class="tab-icon">&#128196;</span> HFile 结构
+            </button>
+            <button class="tab" data-tab="cache" onclick="switchTab('cache')">
+                <span class="tab-icon">&#128163;</span> 缓存机制
+            </button>
+            <button class="tab" data-tab="bloom" onclick="switchTab('bloom')">
+                <span class="tab-icon">&#128269;</span> BloomFilter
+            </button>
+        </div>
+
+        <!-- Tab Content: Row vs Column Store -->
+        <div class="tab-content active" id="tab-rowcol">
+            <div class="section-header">
+                <h2>行式存储 vs 列式存储</h2>
+                <p>理解两种存储模型的区别是掌握 HBase 存储设计的前提</p>
+            </div>
+
+            <!-- Data Layout Visualization -->
+            <div class="rowcol-layout-section">
+                <h3>数据在磁盘上的排列方式</h3>
+                <p>同样的数据，行式和列式的物理布局完全不同</p>
+
+                <div class="rowcol-demo-table">
+                    <table class="demo-data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Age</th>
+                                <th>City</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>001</td><td>张三</td><td>25</td><td>北京</td></tr>
+                            <tr><td>002</td><td>李四</td><td>30</td><td>上海</td></tr>
+                            <tr><td>003</td><td>王五</td><td>28</td><td>广州</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="rowcol-layout-compare">
+                    <div class="layout-side">
+                        <div class="layout-title">
+                            <span class="layout-icon">&#128451;</span>
+                            行式存储（MySQL）
+                        </div>
+                        <div class="layout-desc">数据按行连续存放</div>
+                        <div class="disk-blocks row-store-blocks" id="rowStoreBlocks">
+                            <div class="disk-block">
+                                <div class="block-label">Block 1</div>
+                                <div class="block-data">
+                                    <span class="data-cell row-id">001</span>
+                                    <span class="data-cell row-name">张三</span>
+                                    <span class="data-cell row-age">25</span>
+                                    <span class="data-cell row-city">北京</span>
+                                </div>
+                            </div>
+                            <div class="disk-block">
+                                <div class="block-label">Block 2</div>
+                                <div class="block-data">
+                                    <span class="data-cell row-id">002</span>
+                                    <span class="data-cell row-name">李四</span>
+                                    <span class="data-cell row-age">30</span>
+                                    <span class="data-cell row-city">上海</span>
+                                </div>
+                            </div>
+                            <div class="disk-block">
+                                <div class="block-label">Block 3</div>
+                                <div class="block-data">
+                                    <span class="data-cell row-id">003</span>
+                                    <span class="data-cell row-name">王五</span>
+                                    <span class="data-cell row-age">28</span>
+                                    <span class="data-cell row-city">广州</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="layout-vs">VS</div>
+
+                    <div class="layout-side">
+                        <div class="layout-title">
+                            <span class="layout-icon">&#128196;</span>
+                            列式存储（HBase）
+                        </div>
+                        <div class="layout-desc">数据按列族连续存放</div>
+                        <div class="disk-blocks col-store-blocks" id="colStoreBlocks">
+                            <div class="disk-block cf-block">
+                                <div class="block-label">CF: info</div>
+                                <div class="block-data">
+                                    <div class="col-group">
+                                        <span class="col-label">RowKey</span>
+                                        <span class="data-cell col-id">001</span>
+                                        <span class="data-cell col-id">002</span>
+                                        <span class="data-cell col-id">003</span>
+                                    </div>
+                                    <div class="col-group">
+                                        <span class="col-label">name</span>
+                                        <span class="data-cell col-name">张三</span>
+                                        <span class="data-cell col-name">李四</span>
+                                        <span class="data-cell col-name">王五</span>
+                                    </div>
+                                    <div class="col-group">
+                                        <span class="col-label">age</span>
+                                        <span class="data-cell col-age">25</span>
+                                        <span class="data-cell col-age">30</span>
+                                        <span class="data-cell col-age">28</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="disk-block cf-block">
+                                <div class="block-label">CF: extra</div>
+                                <div class="block-data">
+                                    <div class="col-group">
+                                        <span class="col-label">RowKey</span>
+                                        <span class="data-cell col-id">001</span>
+                                        <span class="data-cell col-id">002</span>
+                                        <span class="data-cell col-id">003</span>
+                                    </div>
+                                    <div class="col-group">
+                                        <span class="col-label">city</span>
+                                        <span class="data-cell col-city">北京</span>
+                                        <span class="data-cell col-city">上海</span>
+                                        <span class="data-cell col-city">广州</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Query Scenario Simulation -->
+            <div class="query-sim-section">
+                <h3>查询场景模拟</h3>
+                <p>同样的查询，两种存储模型的 IO 开销差异巨大</p>
+
+                <div class="query-scenario">
+                    <div class="query-prompt">
+                        <span class="query-label">查询需求：</span>
+                        <code>SELECT Age FROM Users</code>
+                        （读取所有用户的年龄）
+                    </div>
+
+                    <div class="query-controls">
+                        <button class="btn btn-primary" onclick="simulateRowQuery()">
+                            <span class="icon">&#128451;</span> 模拟行式存储查询
+                        </button>
+                        <button class="btn btn-primary" onclick="simulateColQuery()">
+                            <span class="icon">&#128196;</span> 模拟列式存储查询
+                        </button>
+                        <button class="btn btn-secondary" onclick="resetQuerySim()">
+                            <span class="icon">&#128260;</span> 重置
+                        </button>
+                    </div>
+
+                    <div class="query-result" id="queryResult">
+                        <div class="result-empty">点击上方按钮查看查询过程对比</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Table -->
+            <div class="compare-table-section">
+                <h3>核心特性对比</h3>
+                <div class="compare-table-wrapper">
+                    <table class="compare-table">
+                        <thead>
+                            <tr>
+                                <th>对比维度</th>
+                                <th>行式存储（MySQL / Oracle）</th>
+                                <th>列式存储（HBase / ClickHouse）</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>数据布局</strong></td>
+                                <td>按行连续存放</td>
+                                <td>按列族连续存放</td>
+                            </tr>
+                            <tr>
+                                <td><strong>读整行</strong></td>
+                                <td><span class="compare-good">快</span>（一次 IO）</td>
+                                <td><span class="compare-bad">慢</span>（需合并多个列族）</td>
+                            </tr>
+                            <tr>
+                                <td><strong>读少数列</strong></td>
+                                <td><span class="compare-bad">慢</span>（需读整行再过滤）</td>
+                                <td><span class="compare-good">快</span>（只读目标列）</td>
+                            </tr>
+                            <tr>
+                                <td><strong>列的扩展</strong></td>
+                                <td>需 ALTER TABLE，锁表</td>
+                                <td>动态添加，无感知</td>
+                            </tr>
+                            <tr>
+                                <td><strong>稀疏数据</strong></td>
+                                <td>空值占存储空间</td>
+                                <td>空值不存储</td>
+                            </tr>
+                            <tr>
+                                <td><strong>压缩率</strong></td>
+                                <td>较低（数据类型混杂）</td>
+                                <td>较高（同列数据类型一致）</td>
+                            </tr>
+                            <tr>
+                                <td><strong>适用场景</strong></td>
+                                <td>OLTP（事务处理）</td>
+                                <td>OLAP（分析查询）、时序数据</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- HBase Mapping -->
+            <div class="hbase-mapping-section">
+                <h3>列式存储在 HBase 中的体现</h3>
+                <p>理解了这个映射，HBase 的存储模型就通了</p>
+
+                <div class="mapping-flow">
+                    <div class="mapping-item">
+                        <div class="mapping-concept">列式存储</div>
+                        <div class="mapping-arrow">&#8595;</div>
+                        <div class="mapping-desc">数据按列分组存储</div>
+                    </div>
+                    <div class="mapping-item">
+                        <div class="mapping-concept">HBase Column Family</div>
+                        <div class="mapping-arrow">&#8595;</div>
+                        <div class="mapping-desc">一个列族 = 一个 Store = 独立物理文件</div>
+                    </div>
+                    <div class="mapping-item">
+                        <div class="mapping-concept">HFile</div>
+                        <div class="mapping-arrow">&#8595;</div>
+                        <div class="mapping-desc">每个列族的 HFile 只包含该列族的数据</div>
+                    </div>
+                    <div class="mapping-item">
+                        <div class="mapping-concept">查询时</div>
+                        <div class="mapping-arrow">&#8595;</div>
+                        <div class="mapping-desc">只读取目标列族的 HFile，跳过无关列族</div>
+                    </div>
+                </div>
+
+                <div class="mapping-tip">
+                    <strong>为什么 HBase 建议列族数量 1-3 个？</strong>
+                    <p>每个列族是一个独立的 Store，查询时需要跨多个 Store 合并数据。列族过多会导致读放大（Read Amplification），性能下降。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: KeyValue Structure -->
+        <div class="tab-content" id="tab-keyvalue">
+            <div class="section-header">
+                <h2>KeyValue 结构详解</h2>
+                <p>HBase 中所有数据以 KeyValue 对的形式存储，这是 HBase 存储模型的核心</p>
+            </div>
+
+            <div class="keyvalue-demo">
+                <div class="kv-container">
+                    <div class="kv-label">KeyValue 对象</div>
+                    <div class="kv-box" id="kvBox">
+                        <div class="kv-part" data-part="rowkey" onclick="highlightPart('rowkey')">
+                            <div class="kv-part-label">RowKey</div>
+                            <div class="kv-part-value">user:10086</div>
+                            <div class="kv-part-desc">行键 - 唯一标识一行数据</div>
+                        </div>
+                        <div class="kv-part" data-part="family" onclick="highlightPart('family')">
+                            <div class="kv-part-label">Column Family</div>
+                            <div class="kv-part-value">info</div>
+                            <div class="kv-part-desc">列族 - 逻辑分组</div>
+                        </div>
+                        <div class="kv-part" data-part="qualifier" onclick="highlightPart('qualifier')">
+                            <div class="kv-part-label">Qualifier</div>
+                            <div class="kv-part-value">name</div>
+                            <div class="kv-part-desc">列限定符 - 具体列名</div>
+                        </div>
+                        <div class="kv-part" data-part="timestamp" onclick="highlightPart('timestamp')">
+                            <div class="kv-part-label">Timestamp</div>
+                            <div class="kv-part-value">1717833600000</div>
+                            <div class="kv-part-desc">时间戳 - 支持多版本</div>
+                        </div>
+                        <div class="kv-part" data-part="type" onclick="highlightPart('type')">
+                            <div class="kv-part-label">Type</div>
+                            <div class="kv-part-value">Put</div>
+                            <div class="kv-part-desc">操作类型 - Put/Delete</div>
+                        </div>
+                        <div class="kv-part" data-part="value" onclick="highlightPart('value')">
+                            <div class="kv-part-label">Value</div>
+                            <div class="kv-part-value">张三</div>
+                            <div class="kv-part-desc">实际值</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kv-detail-panel" id="kvDetailPanel">
+                    <div class="kv-detail-empty">点击上方 KeyValue 的组成部分查看详情</div>
+                </div>
+            </div>
+
+            <div class="multi-version-demo">
+                <h3>多版本机制演示</h3>
+                <p>同一单元格（RowKey + Column Family + Qualifier）可存储多个版本，按时间戳区分</p>
+
+                <div class="version-table-container">
+                    <div class="version-controls">
+                        <button class="btn btn-primary" onclick="addVersion()">
+                            <span class="icon">&#10133;</span> 添加新版本
+                        </button>
+                        <button class="btn btn-secondary" onclick="resetVersions()">
+                            <span class="icon">&#128260;</span> 重置
+                        </button>
+                    </div>
+
+                    <table class="version-table" id="versionTable">
+                        <thead>
+                            <tr>
+                                <th>RowKey</th>
+                                <th>Column Family</th>
+                                <th>Qualifier</th>
+                                <th>Timestamp</th>
+                                <th>Type</th>
+                                <th>Value</th>
+                                <th>状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="versionTableBody">
+                            <tr class="version-row latest">
+                                <td>user:10086</td>
+                                <td>info</td>
+                                <td>name</td>
+                                <td>1717833600000</td>
+                                <td><span class="badge badge-put">Put</span></td>
+                                <td>张三</td>
+                                <td><span class="badge badge-latest">最新版本</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Logical View -->
+        <div class="tab-content" id="tab-logical">
+            <div class="section-header">
+                <h2>逻辑存储视图</h2>
+                <p>从用户视角看 HBase 的数据组织方式</p>
+            </div>
+
+            <div class="logical-view">
+                <div class="logical-level level-table">
+                    <div class="level-header">
+                        <span class="level-icon">&#128194;</span>
+                        <span class="level-title">Table（表）</span>
+                    </div>
+                    <div class="level-desc">用户表（如：user_info）</div>
+                </div>
+
+                <div class="logical-arrow">&#8595;</div>
+
+                <div class="logical-level level-namespace">
+                    <div class="level-header">
+                        <span class="level-icon">&#128451;</span>
+                        <span class="level-title">Namespace（命名空间）</span>
+                    </div>
+                    <div class="level-desc">default / 自定义命名空间</div>
+                </div>
+
+                <div class="logical-arrow">&#8595;</div>
+
+                <div class="logical-level level-rowkey">
+                    <div class="level-header">
+                        <span class="level-icon">&#128273;</span>
+                        <span class="level-title">RowKey（行键）</span>
+                    </div>
+                    <div class="level-desc">唯一标识一行数据（字典序排列）</div>
+                    <div class="rowkey-examples">
+                        <div class="rowkey-item">user:10001</div>
+                        <div class="rowkey-item">user:10002</div>
+                        <div class="rowkey-item">user:10003</div>
+                        <div class="rowkey-item">...</div>
+                    </div>
+                </div>
+
+                <div class="logical-arrow">&#8595;</div>
+
+                <div class="logical-level level-cf">
+                    <div class="level-header">
+                        <span class="level-icon">&#128196;</span>
+                        <span class="level-title">Column Family（列族）</span>
+                    </div>
+                    <div class="level-desc">建议 1-3 个列族，列族内列可动态扩展</div>
+                    <div class="cf-examples">
+                        <div class="cf-item" onclick="showCFDetail('info')">
+                            <div class="cf-name">info</div>
+                            <div class="cf-columns">
+                                <span class="column-tag">name</span>
+                                <span class="column-tag">age</span>
+                                <span class="column-tag">address</span>
+                            </div>
+                        </div>
+                        <div class="cf-item" onclick="showCFDetail('extra')">
+                            <div class="cf-name">extra</div>
+                            <div class="cf-columns">
+                                <span class="column-tag">email</span>
+                                <span class="column-tag">phone</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="logical-arrow">&#8595;</div>
+
+                <div class="logical-level level-cell">
+                    <div class="level-header">
+                        <span class="level-icon">&#9878;</span>
+                        <span class="level-title">Cell（单元格）</span>
+                    </div>
+                    <div class="level-desc">每个单元格存储多版本数据</div>
+                    <div class="cell-structure">
+                        <div class="cell-part">
+                            <div class="cell-label">Qualifier</div>
+                            <div class="cell-arrow">&#8594;</div>
+                            <div class="cell-versions">
+                                <div class="version-tag">T1: 张三</div>
+                                <div class="version-tag">T2: 李四</div>
+                                <div class="version-tag">T3: 王五</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cf-detail-panel" id="cfDetailPanel">
+                <div class="cf-detail-empty">点击上方列族查看详细信息</div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Physical View -->
+        <div class="tab-content" id="tab-physical">
+            <div class="section-header">
+                <h2>物理存储视图</h2>
+                <p>从底层视角看数据如何分布存储</p>
+            </div>
+
+            <div class="physical-view">
+                <div class="physical-hierarchy">
+                    <div class="phy-level" id="phy-table">
+                        <div class="phy-box">
+                            <div class="phy-icon">&#128194;</div>
+                            <div class="phy-name">Table</div>
+                            <div class="phy-count">1 张表</div>
+                        </div>
+                    </div>
+
+                    <div class="phy-arrow">&#8595;</div>
+
+                    <div class="phy-level" id="phy-region">
+                        <div class="phy-box">
+                            <div class="phy-icon">&#128451;</div>
+                            <div class="phy-name">Region</div>
+                            <div class="phy-count">按 RowKey 范围切分</div>
+                        </div>
+                        <div class="phy-subs">
+                            <div class="phy-sub-box" onclick="highlightRegion(0)">
+                                <div class="phy-sub-name">Region 1</div>
+                                <div class="phy-sub-range">RowKey: A-M</div>
+                            </div>
+                            <div class="phy-sub-box" onclick="highlightRegion(1)">
+                                <div class="phy-sub-name">Region 2</div>
+                                <div class="phy-sub-range">RowKey: N-Z</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="phy-arrow">&#8595;</div>
+
+                    <div class="phy-level" id="phy-store">
+                        <div class="phy-box">
+                            <div class="phy-icon">&#128196;</div>
+                            <div class="phy-name">Store</div>
+                            <div class="phy-count">每个列族对应一个 Store</div>
+                        </div>
+                        <div class="phy-subs">
+                            <div class="phy-sub-box">
+                                <div class="phy-sub-name">Store (info CF)</div>
+                            </div>
+                            <div class="phy-sub-box">
+                                <div class="phy-sub-name">Store (extra CF)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="phy-arrow">&#8595;</div>
+
+                    <div class="phy-level" id="phy-memstore">
+                        <div class="phy-box">
+                            <div class="phy-icon">&#128163;</div>
+                            <div class="phy-name">MemStore</div>
+                            <div class="phy-count">内存写缓存</div>
+                        </div>
+                    </div>
+
+                    <div class="phy-arrow">&#8595; Flush</div>
+
+                    <div class="phy-level" id="phy-hfile">
+                        <div class="phy-box">
+                            <div class="phy-icon">&#128190;</div>
+                            <div class="phy-name">HFile (StoreFile)</div>
+                            <div class="phy-count">磁盘数据文件</div>
+                        </div>
+                    </div>
+
+                    <div class="phy-arrow">&#8595;</div>
+
+                    <div class="phy-level" id="phy-hdfs">
+                        <div class="phy-box">
+                            <div class="phy-icon">&#9729;</div>
+                            <div class="phy-name">HDFS</div>
+                            <div class="phy-count">分布式文件系统</div>
+                        </div>
+                        <div class="phy-subs">
+                            <div class="phy-sub-box small">
+                                <div class="phy-sub-name">Block 1</div>
+                                <div class="phy-sub-range">副本1 副本2 副本3</div>
+                            </div>
+                            <div class="phy-sub-box small">
+                                <div class="phy-sub-name">Block 2</div>
+                                <div class="phy-sub-range">副本1 副本2 副本3</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: RowKey Design -->
+        <div class="tab-content" id="tab-rowkey">
+            <div class="section-header">
+                <h2>RowKey 设计原则</h2>
+                <p>RowKey 是 HBase 设计的核心，直接影响查询性能和数据分布</p>
+            </div>
+
+            <div class="rowkey-principles">
+                <div class="principle-card">
+                    <div class="principle-icon">&#9989;</div>
+                    <h3>短（Short）</h3>
+                    <p>RowKey 越短越好，减少存储空间和 IO 开销</p>
+                    <div class="principle-example">
+                        <div class="example-bad">
+                            <span class="label bad">不推荐</span>
+                            <code>user_10086_name_zhangsan</code>
+                        </div>
+                        <div class="example-good">
+                            <span class="label good">推荐</span>
+                            <code>u10086</code>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="principle-card">
+                    <div class="principle-icon">&#128200;</div>
+                    <h3>小（Small）</h3>
+                    <p>减少内存占用和网络传输，提高缓存命中率</p>
+                    <div class="principle-example">
+                        <div class="example-bad">
+                            <span class="label bad">不推荐</span>
+                            <code>2024-01-01T00:00:00.000Z_user_10086</code>
+                        </div>
+                        <div class="example-good">
+                            <span class="label good">推荐</span>
+                            <code>240101u10086</code>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="principle-card">
+                    <div class="principle-icon">&#127922;</div>
+                    <h3>散（Scatter）</h3>
+                    <p>避免热点问题，让数据均匀分布在各 RegionServer 上</p>
+                    <div class="principle-example">
+                        <div class="example-bad">
+                            <span class="label bad">不推荐（连续RowKey导致热点）</span>
+                            <code>10001, 10002, 10003...</code>
+                        </div>
+                        <div class="example-good">
+                            <span class="label good">推荐（散列后均匀分布）</span>
+                            <code>hash(10001), hash(10002)...</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rowkey-hotspot-demo">
+                <h3>热点问题演示</h3>
+                <p>模拟连续 RowKey 写入时的数据分布情况</p>
+
+                <div class="hotspot-controls">
+                    <button class="btn btn-primary" onclick="simulateSequentialWrite()">
+                        <span class="icon">&#128640;</span> 模拟顺序写入（热点）
+                    </button>
+                    <button class="btn btn-primary" onclick="simulateHashWrite()">
+                        <span class="icon">&#127922;</span> 模拟散列写入（均匀）
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetHotspot()">
+                        <span class="icon">&#128260;</span> 重置
+                    </button>
+                </div>
+
+                <div class="hotspot-visualization" id="hotspotViz">
+                    <div class="region-bar" id="regionBar0">
+                        <div class="region-label">Region 1 (A-M)</div>
+                        <div class="region-fill" id="fill0"></div>
+                        <div class="region-count" id="count0">0</div>
+                    </div>
+                    <div class="region-bar" id="regionBar1">
+                        <div class="region-label">Region 2 (N-Z)</div>
+                        <div class="region-fill" id="fill1"></div>
+                        <div class="region-count" id="count1">0</div>
+                    </div>
+                    <div class="region-bar" id="regionBar2">
+                        <div class="region-label">Region 3 (0-9)</div>
+                        <div class="region-fill" id="fill2"></div>
+                        <div class="region-count" id="count2">0</div>
+                    </div>
+                </div>
+
+                <div class="hotspot-log" id="hotspotLog">
+                    <div class="log-empty">点击上方按钮开始模拟</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: HFile Structure -->
+        <div class="tab-content" id="tab-hfile">
+            <div class="section-header">
+                <h2>HFile 内部结构</h2>
+                <p>HFile 是 HBase 底层存储文件格式，了解其结构有助于优化读取性能</p>
+            </div>
+
+            <div class="hfile-structure">
+                <div class="hfile-visual">
+                    <div class="hfile-label">HFile（StoreFile）</div>
+                    <div class="hfile-box">
+                        <div class="hfile-part" data-hfile="data" onclick="showHFileDetail('data')">
+                            <div class="hfile-part-name">Data Block</div>
+                            <div class="hfile-part-desc">存储实际数据（KeyValue 对）</div>
+                            <div class="hfile-part-size">占比最大</div>
+                        </div>
+                        <div class="hfile-part" data-hfile="index" onclick="showHFileDetail('index')">
+                            <div class="hfile-part-name">Index Block</div>
+                            <div class="hfile-part-desc">Data Block 的索引</div>
+                            <div class="hfile-part-size">加速查找</div>
+                        </div>
+                        <div class="hfile-part" data-hfile="bloom" onclick="showHFileDetail('bloom')">
+                            <div class="hfile-part-name">BloomFilter</div>
+                            <div class="hfile-part-desc">快速判断数据是否存在</div>
+                            <div class="hfile-part-size">减少无效 IO</div>
+                        </div>
+                        <div class="hfile-part" data-hfile="meta" onclick="showHFileDetail('meta')">
+                            <div class="hfile-part-name">Meta Block</div>
+                            <div class="hfile-part-desc">存储元数据信息</div>
+                            <div class="hfile-part-size">文件元信息</div>
+                        </div>
+                        <div class="hfile-part" data-hfile="trailer" onclick="showHFileDetail('trailer')">
+                            <div class="hfile-part-name">Trailer</div>
+                            <div class="hfile-part-desc">文件尾，指向其他部分</div>
+                            <div class="hfile-part-size">固定大小</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hfile-detail-panel" id="hfileDetailPanel">
+                    <div class="hfile-detail-empty">点击上方 HFile 组成部分查看详情</div>
+                </div>
+            </div>
+
+            <div class="read-path-demo">
+                <h3>读取路径演示</h3>
+                <p>Get 请求时，HBase 如何通过 HFile 找到目标数据</p>
+
+                <div class="read-path-steps">
+                    <div class="read-step" id="readStep1" onclick="playReadStep(1)">
+                        <div class="step-num">1</div>
+                        <div class="step-content">
+                            <div class="step-title">检查 MemStore</div>
+                            <div class="step-desc">先在内存中查找最新数据</div>
+                        </div>
+                    </div>
+                    <div class="read-arrow">&#8594;</div>
+                    <div class="read-step" id="readStep2" onclick="playReadStep(2)">
+                        <div class="step-num">2</div>
+                        <div class="step-content">
+                            <div class="step-title">BloomFilter 过滤</div>
+                            <div class="step-desc">判断目标数据是否在 HFile 中</div>
+                        </div>
+                    </div>
+                    <div class="read-arrow">&#8594;</div>
+                    <div class="read-step" id="readStep3" onclick="playReadStep(3)">
+                        <div class="step-num">3</div>
+                        <div class="step-content">
+                            <div class="step-title">Index Block 定位</div>
+                            <div class="step-desc">通过索引找到目标 Data Block</div>
+                        </div>
+                    </div>
+                    <div class="read-arrow">&#8594;</div>
+                    <div class="read-step" id="readStep4" onclick="playReadStep(4)">
+                        <div class="step-num">4</div>
+                        <div class="step-content">
+                            <div class="step-title">Data Block 读取</div>
+                            <div class="step-desc">读取并解析目标 KeyValue</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="read-path-result" id="readPathResult">
+                    <p>点击上方步骤查看详细过程</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Cache Mechanism -->
+        <div class="tab-content" id="tab-cache">
+            <div class="section-header">
+                <h2>HBase 缓存机制</h2>
+                <p>MemStore 与 BlockCache 协同工作，实现高效读写</p>
+            </div>
+
+            <!-- Cache Architecture Overview -->
+            <div class="cache-architecture">
+                <div class="cache-title">RegionServer 内部缓存架构</div>
+                <div class="cache-layout">
+                    <div class="cache-region-server">
+                        <div class="rs-header"><span class="rs-icon">&#127758;</span> HRegionServer</div>
+                        <div class="rs-body">
+                            <div class="cache-box memstore-box" id="memstoreBox">
+                                <div class="cache-box-header">
+                                    <span class="cache-icon">&#128163;</span>
+                                    <span>MemStore</span>
+                                    <span class="cache-tag write">写缓存</span>
+                                </div>
+                                <div class="cache-box-desc">内存中的写入缓冲区</div>
+                                <div class="cache-visual memstore-visual" id="memstoreVisual">
+                                    <div class="memstore-fill" id="memstoreFill"></div>
+                                    <div class="memstore-text" id="memstoreText">已使用: 0%</div>
+                                </div>
+                                <div class="cache-detail">
+                                    <div class="detail-row"><span>作用</span><span>新写入数据先进入此处</span></div>
+                                    <div class="detail-row"><span>刷写阈值</span><span>默认 128MB</span></div>
+                                    <div class="detail-row"><span>刷写后</span><span>生成 StoreFile (HFile)</span></div>
+                                </div>
+                            </div>
+
+                            <div class="cache-box blockcache-box" id="blockcacheBox">
+                                <div class="cache-box-header">
+                                    <span class="cache-icon">&#128214;</span>
+                                    <span>BlockCache</span>
+                                    <span class="cache-tag read">读缓存</span>
+                                </div>
+                                <div class="cache-box-desc">HFile 数据块缓存</div>
+                                <div class="cache-visual blockcache-visual" id="blockcacheVisual">
+                                    <div class="blockcache-blocks" id="blockcacheBlocks">
+                                        <div class="bc-block empty"></div>
+                                        <div class="bc-block empty"></div>
+                                        <div class="bc-block empty"></div>
+                                        <div class="bc-block empty"></div>
+                                        <div class="bc-block empty"></div>
+                                        <div class="bc-block empty"></div>
+                                    </div>
+                                    <div class="blockcache-text" id="blockcacheText">缓存块: 0/6</div>
+                                </div>
+                                <div class="cache-detail">
+                                    <div class="detail-row"><span>作用</span><span>缓存热数据块，加速读</span></div>
+                                    <div class="detail-row"><span>命中时</span><span>直接从内存返回</span></div>
+                                    <div class="detail-row"><span>未命中</span><span>从 HFile 读取并缓存</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Write Path with MemStore -->
+            <div class="cache-write-section">
+                <h3>写入流程与 MemStore</h3>
+                <p>观察数据如何写入 MemStore，并在达到阈值后刷写到 HFile</p>
+
+                <div class="write-sim-container">
+                    <div class="write-sim-steps">
+                        <div class="write-step" id="wStep1">
+                            <div class="write-step-num">1</div>
+                            <div class="write-step-content">
+                                <div class="write-step-title">Client 发送 Put</div>
+                                <div class="write-step-desc">客户端发送写入请求</div>
+                            </div>
+                        </div>
+                        <div class="write-arrow">&#8595;</div>
+                        <div class="write-step" id="wStep2">
+                            <div class="write-step-num">2</div>
+                            <div class="write-step-content">
+                                <div class="write-step-title">写入 WAL</div>
+                                <div class="write-step-desc">先写预写日志保证可靠性</div>
+                            </div>
+                        </div>
+                        <div class="write-arrow">&#8595;</div>
+                        <div class="write-step" id="wStep3">
+                            <div class="write-step-num">3</div>
+                            <div class="write-step-content">
+                                <div class="write-step-title">写入 MemStore</div>
+                                <div class="write-step-desc">数据进入内存缓冲区</div>
+                            </div>
+                        </div>
+                        <div class="write-arrow">&#8595;</div>
+                        <div class="write-step" id="wStep4">
+                            <div class="write-step-num">4</div>
+                            <div class="write-step-content">
+                                <div class="write-step-title">MemStore Flush</div>
+                                <div class="write-step-desc">达到阈值后刷写为 HFile</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="write-sim-visual">
+                        <div class="write-memstore-panel">
+                            <div class="panel-label">MemStore 状态</div>
+                            <div class="memstore-bucket" id="memstoreBucket">
+                                <div class="bucket-fill" id="bucketFill"></div>
+                                <div class="bucket-markers">
+                                    <div class="bucket-marker" style="bottom: 33%;">33%</div>
+                                    <div class="bucket-marker" style="bottom: 66%;">66%</div>
+                                    <div class="bucket-marker threshold" style="bottom: 100%;">100% (Flush)</div>
+                                </div>
+                            </div>
+                            <div class="bucket-status" id="bucketStatus">等待写入...</div>
+                        </div>
+
+                        <div class="write-controls">
+                            <button class="btn btn-primary" onclick="simulateWrite()">
+                                <span class="icon">&#10133;</span> 模拟写入数据
+                            </button>
+                            <button class="btn btn-secondary" onclick="resetWriteSim()">
+                                <span class="icon">&#128260;</span> 重置
+                            </button>
+                        </div>
+
+                        <div class="write-hfile-panel" id="hfilePanel">
+                            <div class="panel-label">已生成的 HFile</div>
+                            <div class="hfile-list" id="hfileList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Read Path with BlockCache -->
+            <div class="cache-read-section">
+                <h3>读取流程与 BlockCache</h3>
+                <p>观察读取时如何依次检查 MemStore、BlockCache 和 HFile</p>
+
+                <div class="read-cache-container">
+                    <div class="read-cache-layers">
+                        <div class="read-layer" id="rLayerMemstore" onclick="checkMemStore()">
+                            <div class="read-layer-header">
+                                <span class="layer-icon">&#128163;</span>
+                                <span>MemStore</span>
+                                <span class="layer-status" id="statusMemstore">未检查</span>
+                            </div>
+                            <div class="read-layer-desc">检查最新写入的数据（可能未刷写）</div>
+                        </div>
+
+                        <div class="read-arrow">&#8595;</div>
+
+                        <div class="read-layer" id="rLayerBlockCache" onclick="checkBlockCache()">
+                            <div class="read-layer-header">
+                                <span class="layer-icon">&#128214;</span>
+                                <span>BlockCache</span>
+                                <span class="layer-status" id="statusBlockCache">未检查</span>
+                            </div>
+                            <div class="read-layer-desc">检查近期读取过的数据块</div>
+                        </div>
+
+                        <div class="read-arrow">&#8595;</div>
+
+                        <div class="read-layer" id="rLayerHFile" onclick="checkHFile()">
+                            <div class="read-layer-header">
+                                <span class="layer-icon">&#128190;</span>
+                                <span>HFile (磁盘)</span>
+                                <span class="layer-status" id="statusHFile">未检查</span>
+                            </div>
+                            <div class="read-layer-desc">从磁盘读取数据并缓存到 BlockCache</div>
+                        </div>
+                    </div>
+
+                    <div class="read-cache-controls">
+                        <button class="btn btn-primary" onclick="simulateReadHit()">
+                            <span class="icon">&#9989;</span> 模拟缓存命中
+                        </button>
+                        <button class="btn btn-primary" onclick="simulateReadMiss()">
+                            <span class="icon">&#10060;</span> 模拟缓存未命中
+                        </button>
+                        <button class="btn btn-secondary" onclick="resetReadSim()">
+                            <span class="icon">&#128260;</span> 重置
+                        </button>
+                    </div>
+
+                    <div class="read-cache-result" id="readCacheResult">
+                        <div class="result-empty">点击上方按钮模拟读取过程</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cache Comparison Table -->
+            <div class="cache-compare-section">
+                <h3>MemStore vs BlockCache 对比</h3>
+                <div class="compare-table-wrapper">
+                    <table class="compare-table">
+                        <thead>
+                            <tr>
+                                <th>对比维度</th>
+                                <th>MemStore</th>
+                                <th>BlockCache</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>主要作用</strong></td>
+                                <td>写缓存 + 读缓存</td>
+                                <td>文件块缓存（读缓存）</td>
+                            </tr>
+                            <tr>
+                                <td><strong>存储内容</strong></td>
+                                <td>新写入的 KeyValue 数据</td>
+                                <td>从 HFile 读取过的 Data Block</td>
+                            </tr>
+                            <tr>
+                                <td><strong>生命周期</strong></td>
+                                <td>刷写后清空（生成 HFile）</td>
+                                <td>LRU 淘汰，长期存在</td>
+                            </tr>
+                            <tr>
+                                <td><strong>触发条件</strong></td>
+                                <td>达到阈值（默认 128MB）或时间触发</td>
+                                <td>内存不足时 LRU 淘汰</td>
+                            </tr>
+                            <tr>
+                                <td><strong>写入路径</strong></td>
+                                <td>数据写入必经之地</td>
+                                <td>不直接参与写入</td>
+                            </tr>
+                            <tr>
+                                <td><strong>读取路径</strong></td>
+                                <td>优先检查（最新数据）</td>
+                                <td>其次检查（热数据）</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: BloomFilter -->
+        <div class="tab-content" id="tab-bloom">
+            <div class="section-header">
+                <h2>BloomFilter（布隆过滤器）</h2>
+                <p>快速判断数据是否可能存在，减少不必要的磁盘 IO</p>
+            </div>
+
+            <!-- BloomFilter Principle -->
+            <div class="bloom-principle-section">
+                <h3>工作原理</h3>
+                <p>布隆过滤器使用位数组和多个哈希函数来快速判断元素是否可能存在</p>
+
+                <div class="bloom-visual">
+                    <div class="bloom-bit-array" id="bitArray">
+                        <div class="bit-array-label">位数组（Bit Array）</div>
+                        <div class="bit-cells" id="bitCells">
+                            <div class="bit-cell" data-index="0"></div>
+                            <div class="bit-cell" data-index="1"></div>
+                            <div class="bit-cell" data-index="2"></div>
+                            <div class="bit-cell" data-index="3"></div>
+                            <div class="bit-cell" data-index="4"></div>
+                            <div class="bit-cell" data-index="5"></div>
+                            <div class="bit-cell" data-index="6"></div>
+                            <div class="bit-cell" data-index="7"></div>
+                            <div class="bit-cell" data-index="8"></div>
+                            <div class="bit-cell" data-index="9"></div>
+                            <div class="bit-cell" data-index="10"></div>
+                            <div class="bit-cell" data-index="11"></div>
+                        </div>
+                        <div class="bit-indexes">
+                            <span>0</span>
+                            <span>1</span>
+                            <span>2</span>
+                            <span>3</span>
+                            <span>4</span>
+                            <span>5</span>
+                            <span>6</span>
+                            <span>7</span>
+                            <span>8</span>
+                            <span>9</span>
+                            <span>10</span>
+                            <span>11</span>
+                        </div>
+                    </div>
+
+                    <div class="bloom-hash-functions">
+                        <div class="hash-func">
+                            <div class="hash-label">Hash 1</div>
+                            <div class="hash-arrow">&#8595;</div>
+                        </div>
+                        <div class="hash-func">
+                            <div class="hash-label">Hash 2</div>
+                            <div class="hash-arrow">&#8595;</div>
+                        </div>
+                        <div class="hash-func">
+                            <div class="hash-label">Hash 3</div>
+                            <div class="hash-arrow">&#8595;</div>
+                        </div>
+                    </div>
+
+                    <div class="bloom-input">
+                        <div class="bloom-input-label">输入元素</div>
+                        <div class="bloom-input-value" id="bloomInputValue">"user:10086"</div>
+                    </div>
+                </div>
+
+                <div class="bloom-controls">
+                    <button class="btn btn-primary" onclick="simulateBloomAdd()">
+                        <span class="icon">&#10133;</span> 添加元素到过滤器
+                    </button>
+                    <button class="btn btn-primary" onclick="simulateBloomCheck()">
+                        <span class="icon">&#128269;</span> 查询元素是否存在
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetBloom()">
+                        <span class="icon">&#128260;</span> 重置过滤器
+                    </button>
+                </div>
+
+                <div class="bloom-result" id="bloomResult">
+                    <div class="result-empty">点击上方按钮演示布隆过滤器的添加和查询过程</div>
+                </div>
+            </div>
+
+            <!-- BloomFilter Characteristics -->
+            <div class="bloom-char-section">
+                <h3>核心特性</h3>
+                <div class="char-cards">
+                    <div class="char-card good">
+                        <div class="char-icon">&#9989;</div>
+                        <div class="char-title">肯定不存在</div>
+                        <div class="char-desc">如果布隆过滤器判断"不存在"，那么这个元素<strong>一定不存在</strong></div>
+                        <div class="char-example">查询 "user:99999" → 不在过滤器中 → <strong>直接跳过该 HFile</strong></div>
+                    </div>
+                    <div class="char-card warning">
+                        <div class="char-icon">&#9888;</div>
+                        <div class="char-title">可能存在</div>
+                        <div class="char-desc">如果布隆过滤器判断"可能存在"，那么这个元素<strong>不一定存在</strong>（有一定误判率）</div>
+                        <div class="char-example">查询 "user:10086" → 可能在过滤器中 → <strong>需要读取 HFile 确认</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BloomFilter in HFile -->
+            <div class="bloom-hfile-section">
+                <h3>BloomFilter 在 HFile 中的位置</h3>
+                <p>每个 HFile 都包含自己的布隆过滤器，读取时先检查过滤器再决定是否读取数据块</p>
+
+                <div class="hfile-bloom-layout">
+                    <div class="hfile-visual-row">
+                        <div class="hfile-part-small">
+                            <div class="hfile-part-name">Data Block</div>
+                            <div class="hfile-part-size">实际数据</div>
+                        </div>
+                        <div class="hfile-part-small">
+                            <div class="hfile-part-name">Index Block</div>
+                            <div class="hfile-part-size">索引</div>
+                        </div>
+                        <div class="hfile-part-small active">
+                            <div class="hfile-part-name">BloomFilter</div>
+                            <div class="hfile-part-size">快速过滤</div>
+                        </div>
+                        <div class="hfile-part-small">
+                            <div class="hfile-part-name">Trailer</div>
+                            <div class="hfile-part-size">文件尾</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bloom-read-flow">
+                    <div class="read-flow-title">读取时的过滤流程</div>
+                    <div class="read-flow-steps">
+                        <div class="read-flow-step">
+                            <div class="flow-step-num">1</div>
+                            <div class="flow-step-content">
+                                <div class="flow-step-title">获取目标 RowKey</div>
+                                <div class="flow-step-desc">Client 发送 Get("user:10086")</div>
+                            </div>
+                        </div>
+                        <div class="flow-arrow">&#8594;</div>
+                        <div class="read-flow-step">
+                            <div class="flow-step-num">2</div>
+                            <div class="flow-step-content">
+                                <div class="flow-step-title">检查 BloomFilter</div>
+                                <div class="flow-step-desc">用 3 个哈希函数计算位数组位置</div>
+                            </div>
+                        </div>
+                        <div class="flow-arrow">&#8594;</div>
+                        <div class="read-flow-step" id="flowStep3">
+                            <div class="flow-step-num">3</div>
+                            <div class="flow-step-content">
+                                <div class="flow-step-title" id="flowStep3Title">判断结果</div>
+                                <div class="flow-step-desc" id="flowStep3Desc">根据位数组状态决定下一步</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BloomFilter Stats -->
+            <div class="bloom-stats-section">
+                <h3>性能收益</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">99%</div>
+                        <div class="stat-desc">不存在的数据可被快速过滤</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">&lt;1%</div>
+                        <div class="stat-desc">典型误判率（可调节）</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">10x</div>
+                        <div class="stat-desc">减少无效磁盘 IO 的倍数</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/storage.js"></script>
+</body>
+</html>
