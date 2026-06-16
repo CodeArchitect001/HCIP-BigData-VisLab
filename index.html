@@ -3,26 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HCIP-BigData VisLab - 实验入口</title>
-    <link rel="stylesheet" href="Hbase-VisLab/vislab/css/style.css">
+    <title>HCIP-BigData VisLab - 模块总览</title>
+    <link rel="stylesheet" href="assets/css/style.css">
     <style>
-        .home-container {
+        .module-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 40px 20px;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
         }
 
-        .home-header {
+        .module-header {
             text-align: center;
-            margin-bottom: 60px;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .home-header h1 {
-            font-size: 3rem;
+        .module-header h1 {
+            font-size: 2.8rem;
             font-weight: 700;
             background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
             -webkit-background-clip: text;
@@ -31,165 +30,184 @@
             margin-bottom: 12px;
         }
 
-        .home-header .subtitle {
-            font-size: 1.1rem;
+        .module-header .subtitle {
             color: var(--text-secondary);
+            font-size: 1.1rem;
         }
 
-        .lab-grid {
+        .module-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
             gap: 30px;
         }
 
-        .lab-card {
+        .module-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 36px 28px;
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s;
             text-decoration: none;
             color: var(--text-primary);
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        .lab-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--accent-color);
-            box-shadow: 0 0 20px var(--accent-color);
-        }
-
-        .lab-card:hover {
-            transform: translateY(-6px);
+        .module-card:hover {
+            transform: translateY(-4px);
             border-color: var(--accent-color);
             box-shadow: 0 10px 40px -10px var(--accent-glow);
         }
 
-        .lab-icon {
-            width: 64px;
-            height: 64px;
-            border-radius: var(--radius-md);
-            background: rgba(255, 255, 255, 0.05);
+        .module-card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .module-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            background: var(--accent-color);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
+            font-size: 1.8rem;
+            color: var(--bg-primary);
         }
 
-        .lab-card h2 {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
+        .module-title-group h2 {
+            font-size: 1.4rem;
+            margin-bottom: 4px;
             color: var(--accent-color);
         }
 
-        .lab-card p {
+        .module-title-group span {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .module-card p {
             color: var(--text-secondary);
             line-height: 1.6;
             margin-bottom: 20px;
+            flex: 1;
         }
 
-        .lab-tags {
+        .module-topics {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
         }
 
-        .lab-tag {
+        .module-topic {
             font-size: 0.8rem;
-            padding: 4px 10px;
+            padding: 5px 12px;
             border-radius: 20px;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255,255,255,0.05);
             color: var(--text-secondary);
             border: 1px solid var(--border-color);
         }
 
-        .lab-card .arrow {
-            position: absolute;
-            right: 28px;
-            top: 36px;
-            font-size: 1.5rem;
-            color: var(--text-muted);
-            transition: var(--transition);
+        .module-topic.ready {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+            color: #10b981;
         }
 
-        .lab-card:hover .arrow {
-            color: var(--accent-color);
-            transform: translateX(4px);
-        }
-
-        .home-footer {
-            text-align: center;
-            margin-top: 60px;
+        .module-topic.pending {
+            background: rgba(148, 163, 184, 0.1);
             color: var(--text-muted);
-            font-size: 0.9rem;
         }
 
         @media (max-width: 640px) {
-            .home-header h1 {
-                font-size: 2rem;
-            }
-            .lab-grid {
+            .module-grid {
                 grid-template-columns: 1fr;
+            }
+            .module-header h1 {
+                font-size: 2rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="home-container">
-        <header class="home-header">
+    <div class="module-container">
+        <header class="module-header">
             <h1>HCIP-BigData VisLab</h1>
-            <p class="subtitle">HCIP-Big Data Developer V2.0 | 交互式可视化实验入口</p>
+            <p class="subtitle">按 HCIP-Big Data Developer V2.0 考试四大模块组织的交互式可视化实验</p>
         </header>
 
-        <main class="lab-grid">
-            <a href="Hbase-VisLab/vislab/index.html" class="lab-card" style="--accent-color: var(--accent-client); --accent-glow: var(--glow-client);">
-                <div class="lab-icon">&#128187;</div>
-                <span class="arrow">&#8594;</span>
-                <h2>HBase 架构可视化</h2>
-                <p>从 Client 到 HDFS 的完整读写流程动画，理解 HBase 核心组件与交互关系。</p>
-                <div class="lab-tags">
-                    <span class="lab-tag">架构图</span>
-                    <span class="lab-tag">读写流程</span>
-                    <span class="lab-tag">组件详情</span>
+        <main class="module-grid">
+            <a href="01-bigdata-overview/index.html" class="module-card" style="--accent-color: #3b82f6; --accent-glow: rgba(59, 130, 246, 0.3);">
+                <div class="module-card-header">
+                    <div class="module-icon">&#127758;</div>
+                    <div class="module-title-group">
+                        <h2>01 大数据场景化解决方案总览</h2>
+                        <span>考试占比 15%</span>
+                    </div>
+                </div>
+                <p>大数据基础概念、Hadoop 生态系统、FusionInsight MRS 产品方案、数据湖演进与行业趋势。</p>
+                <div class="module-topics">
+                    <span class="module-topic pending">4V 特征</span>
+                    <span class="module-topic pending">Hadoop 生态</span>
+                    <span class="module-topic pending">FusionInsight MRS</span>
+                    <span class="module-topic pending">数据湖演进</span>
                 </div>
             </a>
 
-            <a href="Hbase-VisLab/vislab/storage.html" class="lab-card" style="--accent-color: var(--accent-server); --accent-glow: var(--glow-server);">
-                <div class="lab-icon">&#128451;</div>
-                <span class="arrow">&#8594;</span>
-                <h2>HBase 存储模型</h2>
-                <p>深入 KeyValue、RowKey、HFile、MemStore、BlockCache 与 BloomFilter 的存储原理。</p>
-                <div class="lab-tags">
-                    <span class="lab-tag">KeyValue</span>
-                    <span class="lab-tag">HFile</span>
-                    <span class="lab-tag">缓存与过滤</span>
+            <a href="02-offline-batch/index.html" class="module-card" style="--accent-color: #10b981; --accent-glow: rgba(16, 185, 129, 0.3);">
+                <div class="module-card-header">
+                    <div class="module-icon">&#128194;</div>
+                    <div class="module-title-group">
+                        <h2>02 大数据离线批处理场景化解决方案</h2>
+                        <span>考试占比 25%</span>
+                    </div>
+                </div>
+                <p>HDFS 分布式存储、Hive 数据仓库、SparkSQL 内存计算、数据采集工具与数仓分层设计。</p>
+                <div class="module-topics">
+                    <span class="module-topic pending">HDFS</span>
+                    <span class="module-topic pending">Hive</span>
+                    <span class="module-topic pending">SparkSQL</span>
+                    <span class="module-topic pending">数仓分层 ODS→ADS</span>
                 </div>
             </a>
 
-            <a href="Hbase-VisLab/vislab/elasticsearch.html" class="lab-card" style="--accent-color: var(--accent-coord); --accent-glow: var(--glow-coord);">
-                <div class="lab-icon">&#128269;</div>
-                <span class="arrow">&#8594;</span>
-                <h2>Elasticsearch 架构</h2>
-                <p>倒排索引、索引与搜索流程、ELK 生态与性能优化的分布式检索可视化。</p>
-                <div class="lab-tags">
-                    <span class="lab-tag">倒排索引</span>
-                    <span class="lab-tag">分片副本</span>
-                    <span class="lab-tag">ELK 生态</span>
+            <a href="03-realtime-search/index.html" class="module-card" style="--accent-color: #a855f7; --accent-glow: rgba(168, 85, 247, 0.3);">
+                <div class="module-card-header">
+                    <div class="module-icon">&#128269;</div>
+                    <div class="module-title-group">
+                        <h2>03 大数据实时检索场景化解决方案</h2>
+                        <span>考试占比 30%</span>
+                    </div>
+                </div>
+                <p>HBase 主键查询、ElasticSearch 全文检索、GES 图引擎服务、组件选型与联合检索模式。</p>
+                <div class="module-topics">
+                    <span class="module-topic ready">HBase 架构</span>
+                    <span class="module-topic ready">HBase 存储模型</span>
+                    <span class="module-topic ready">Elasticsearch</span>
+                    <span class="module-topic pending">GES 图引擎</span>
+                </div>
+            </a>
+
+            <a href="04-realtime-streaming/index.html" class="module-card" style="--accent-color: #f59e0b; --accent-glow: rgba(245, 158, 11, 0.3);">
+                <div class="module-card-header">
+                    <div class="module-icon">&#9889;</div>
+                    <div class="module-title-group">
+                        <h2>04 大数据实时流计算场景化解决方案</h2>
+                        <span>考试占比 30%</span>
+                    </div>
+                </div>
+                <p>Flume 实时采集、Kafka 消息队列、Flink 流处理引擎、Structured Streaming、Redis 高速缓存。</p>
+                <div class="module-topics">
+                    <span class="module-topic pending">Flume</span>
+                    <span class="module-topic pending">Kafka</span>
+                    <span class="module-topic ready">Flink</span>
+                    <span class="module-topic pending">Redis</span>
                 </div>
             </a>
         </main>
-
-        <footer class="home-footer">
-            <p>点击卡片进入对应实验模块</p>
-        </footer>
     </div>
 </body>
 </html>

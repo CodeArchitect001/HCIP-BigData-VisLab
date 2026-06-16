@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>03 大数据实时检索场景化解决方案 - VisLab</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .submodule-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 50px 20px;
+            min-height: 100vh;
+        }
+
+        .submodule-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .submodule-header h1 {
+            font-size: 2.4rem;
+            color: var(--accent-coord);
+            margin-bottom: 12px;
+        }
+
+        .submodule-header p {
+            color: var(--text-secondary);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--accent-coord);
+            text-decoration: none;
+            margin-bottom: 30px;
+            padding: 8px 14px;
+            border: 1px solid var(--accent-coord);
+            border-radius: 6px;
+            transition: all 0.25s;
+        }
+
+        .back-link:hover {
+            background: rgba(168, 85, 247, 0.1);
+        }
+
+        .submodule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+        }
+
+        .submodule-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 28px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .submodule-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-coord);
+            box-shadow: 0 8px 30px -10px rgba(168, 85, 247, 0.3);
+        }
+
+        .submodule-card h3 {
+            color: var(--accent-coord);
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .submodule-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .status-ready {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+
+        .status-pending {
+            background: rgba(148, 163, 184, 0.15);
+            color: var(--text-muted);
+        }
+
+        .arrow {
+            position: absolute;
+            right: 20px;
+            top: 24px;
+            color: var(--text-muted);
+            font-size: 1.3rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="submodule-container">
+        <a href="../index.html" class="back-link">&#8592; 返回模块总览</a>
+
+        <header class="submodule-header">
+            <h1>03 大数据实时检索场景化解决方案</h1>
+            <p>考试占比 30% | HBase / Elasticsearch / GES 图引擎</p>
+        </header>
+
+        <div class="submodule-grid">
+            <a href="hbase-architecture/index.html" class="submodule-card">
+                <span class="arrow">&#8594;</span>
+                <h3>&#128187; HBase 架构可视化</h3>
+                <p>Client → ZooKeeper → HMaster → HRegionServer → HDFS 完整架构与读写流程动画。</p>
+                <span class="status-badge status-ready">已开发</span>
+            </a>
+
+            <a href="hbase-storage/index.html" class="submodule-card">
+                <span class="arrow">&#8594;</span>
+                <h3>&#128451; HBase 存储模型</h3>
+                <p>KeyValue 结构、RowKey 设计、HFile、MemStore、BlockCache 与 BloomFilter。</p>
+                <span class="status-badge status-ready">已开发</span>
+            </a>
+
+            <a href="elasticsearch/index.html" class="submodule-card">
+                <span class="arrow">&#8594;</span>
+                <h3>&#128269; Elasticsearch 架构</h3>
+                <p>倒排索引、分片副本、索引与搜索流程、ELK 生态与性能优化。</p>
+                <span class="status-badge status-ready">已开发</span>
+            </a>
+
+            <a href="ges-graph/index.html" class="submodule-card">
+                <span class="arrow">&#8594;</span>
+                <h3>&#127760; GES 图引擎服务</h3>
+                <p>属性图模型、Gremlin 查询语言、REST 接口与图分析场景。</p>
+                <span class="status-badge status-pending">待开发</span>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

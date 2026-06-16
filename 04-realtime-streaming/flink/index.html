@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flink + Structured Streaming 可视化 - VisLab</title>
+    <link rel="stylesheet" href="../../assets/css/flink.css">
+</head>
+<body class="fl-page">
+    <div class="fl-top-nav">
+        <div class="fl-nav-brand">
+            <span class="fl-logo">FL</span>
+            <span>Flink + Structured Streaming 可视化</span>
+        </div>
+        <a href="../index.html" class="fl-back-link">
+            <span>&#8592;</span> 返回实时流计算模块
+        </a>
+    </div>
+
+    <nav class="fl-navbar">
+        <ul class="fl-nav-links">
+            <li><a href="#fl-overview">概览</a></li>
+            <li><a href="#fl-architecture">架构</a></li>
+            <li><a href="#fl-concepts">核心概念</a></li>
+            <li><a href="#fl-time">时间语义</a></li>
+            <li><a href="#fl-window">窗口</a></li>
+            <li><a href="#fl-watermark">Watermark</a></li>
+            <li><a href="#fl-checkpoint">Checkpoint</a></li>
+            <li><a href="#fl-ss">Structured Streaming</a></li>
+            <li><a href="#fl-pipeline">实时链路</a></li>
+        </ul>
+        <div class="fl-nav-toggle">&#9776;</div>
+    </nav>
+
+    <!-- 概览 -->
+    <section id="fl-overview" class="fl-hero fl-section">
+        <div class="fl-hero-content">
+            <h1>Flink + Structured Streaming</h1>
+            <p class="fl-subtitle">批流统一的实时计算引擎</p>
+            <div class="fl-features-grid">
+                <div class="fl-feature-card">
+                    <div class="fl-feature-icon">&#9889;</div>
+                    <h3>高吞吐低延迟</h3>
+                    <p>兼顾吞吐量与延迟，支持秒级甚至毫秒级响应</p>
+                </div>
+                <div class="fl-feature-card">
+                    <div class="fl-feature-icon">&#128274;</div>
+                    <h3>Exactly-once</h3>
+                    <p>基于 Checkpoint 的精确一次状态化容错语义</p>
+                </div>
+                <div class="fl-feature-card">
+                    <div class="fl-feature-icon">&#128338;</div>
+                    <h3>事件时间处理</h3>
+                    <p>支持 Event Time 与 Watermark 处理乱序/延迟数据</p>
+                </div>
+                <div class="fl-feature-card">
+                    <div class="fl-feature-icon">&#128187;</div>
+                    <h3>多 API 支持</h3>
+                    <p>DataStream API / Table API / SQL API 统一编程接口</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 架构 -->
+    <section id="fl-architecture" class="fl-architecture">
+        <div class="fl-section">
+            <h2 class="fl-section-title">Flink 整体架构</h2>
+            <p class="fl-section-desc">JobManager 负责任务调度与协调，TaskManager 负责任务执行</p>
+
+            <div class="fl-arch-container">
+                <div class="fl-arch-layer">
+                    <div class="fl-layer-label">客户端层</div>
+                    <div class="fl-nodes-row">
+                        <div class="fl-arch-node fl-client" data-info="Client: 提交 Flink 作业到 JobManager">
+                            <div class="fl-node-title">Client</div>
+                            <div class="fl-node-desc">提交作业</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fl-arch-arrow">&#8595;</div>
+
+                <div class="fl-arch-layer">
+                    <div class="fl-layer-label">管理协调层</div>
+                    <div class="fl-nodes-row">
+                        <div class="fl-arch-node fl-jobmanager" data-info="JobManager: 调度任务、协调 Checkpoint、维护作业图">
+                            <div class="fl-node-title">JobManager</div>
+                            <div class="fl-node-desc">作业管理 / 调度 / Checkpoint 协调</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fl-arch-arrow">&#8595;</div>
+
+                <div class="fl-arch-layer">
+                    <div class="fl-layer-label">计算执行层</div>
+                    <div class="fl-nodes-row">
+                        <div class="fl-arch-node fl-taskmanager" data-info="TaskManager: 执行具体 Task，管理 Slot 资源">
+                            <div class="fl-node-title">TaskManager 1</div>
+                            <div class="fl-node-desc">Slot A / Slot B</div>
+                        </div>
+                        <div class="fl-arch-node fl-taskmanager" data-info="TaskManager: 执行具体 Task，管理 Slot 资源">
+                            <div class="fl-node-title">TaskManager 2</div>
+                            <div class="fl-node-desc">Slot C / Slot D</div>
+                        </div>
+                        <div class="fl-arch-node fl-taskmanager" data-info="TaskManager: 执行具体 Task，管理 Slot 资源">
+                            <div class="fl-node-title">TaskManager N</div>
+                            <div class="fl-node-desc">水平扩展</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fl-arch-arrow">&#8595;</div>
+
+                <div class="fl-arch-layer">
+                    <div class="fl-layer-label">状态存储层</div>
+                    <div class="fl-nodes-row">
+                        <div class="fl-arch-node fl-state" data-info="State Backend: 存储算子状态，支持 Memory/FS/RocksDB">
+                            <div class="fl-node-title">State Backend</div>
+                            <div class="fl-node-desc">Memory / FS / RocksDB</div>
+                        </div>
+                        <div class="fl-arch-node fl-state" data-info="Checkpoint Storage: 持久化快照到 JobManager 内存或 HDFS">
+                            <div class="fl-node-title">Checkpoint Storage</div>
+                            <div class="fl-node-desc">JobManager / HDFS</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fl-arch-info-panel" id="fl-arch-info">
+                <p>点击架构节点查看详细说明</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 核心概念 -->
+    <section id="fl-concepts" class="fl-section">
+        <h2 class="fl-section-title">核心概念</h2>
+        <div class="fl-concept-grid">
+            <div class="fl-concept-card">
+                <div class="fl-concept-header">
+                    <span class="fl-concept-badge">DataStream</span>
+                </div>
+                <p>Flink 的核心数据抽象，表示元素持续产生的无界数据流。</p>
+            </div>
+            <div class="fl-concept-card">
+                <div class="fl-concept-header">
+                    <span class="fl-concept-badge">Transformation</span>
+                </div>
+                <p>对 DataStream 进行操作：map、filter、keyBy、window、reduce 等。</p>
+            </div>
+            <div class="fl-concept-card">
+                <div class="fl-concept-header">
+                    <span class="fl-concept-badge">Stateful</span>
+                </div>
+                <p>有状态流处理：聚合、连接等需要维护中间结果的运算。</p>
+            </div>
+            <div class="fl-concept-card">
+                <div class="fl-concept-header">
+                    <span class="fl-concept-badge">Sink</span>
+                </div>
+                <p>数据输出到 Kafka、ES、Redis、JDBC、HDFS 等外部系统。</p>
+            </div>
+            <div class="fl-concept-card">
+                <div class="fl-concept-header">
+                    <span class="fl-concept-badge">Slot</span>
+                </div>
+                <p>TaskManager 内的资源单元，一个 Slot 可执行多个 subtask。</p>
+            </div>
+            <div class="fl-concept-card">
+                <div class="fl-concept-header">
+                    <span class="fl-concept-badge">Operator Chain</span>
+                </div>
+                <p>将多个算子链接为一个 task 执行，减少线程切换与序列化开销。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 时间语义 -->
+    <section id="fl-time" class="fl-section">
+        <h2 class="fl-section-title">时间语义</h2>
+        <p class="fl-section-desc">Flink 支持三种时间类型，推荐在乱序场景下使用 Event Time</p>
+        <div class="fl-time-types">
+            <div class="fl-time-card">
+                <h3>Event Time</h3>
+                <div class="fl-en">事件时间</div>
+                <p>数据产生的时间，业务时间。处理乱序/延迟数据时推荐使用。</p>
+            </div>
+            <div class="fl-time-card">
+                <h3>Processing Time</h3>
+                <div class="fl-en">处理时间</div>
+                <p>机器处理数据时的本地时间，性能最高但结果不确定。</p>
+            </div>
+            <div class="fl-time-card">
+                <h3>Ingestion Time</h3>
+                <div class="fl-en">摄入时间</div>
+                <p>数据进入 Flink 的时间，介于 Event Time 与 Processing Time 之间。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 窗口 -->
+    <section id="fl-window" class="fl-section">
+        <h2 class="fl-section-title">Window 窗口</h2>
+        <p class="fl-section-desc">将无界流切分为有界的数据块进行处理，必须在 KeyBy 之后使用</p>
+        <div class="fl-window-grid">
+            <div class="fl-window-card">
+                <h3>滚动窗口</h3>
+                <span class="fl-en">Tumbling Window</span>
+                <p>固定大小、不重叠、无间隙。如每 5 秒统计一次。</p>
+            </div>
+            <div class="fl-window-card">
+                <h3>滑动窗口</h3>
+                <span class="fl-en">Sliding Window</span>
+                <p>固定大小、可重叠、有滑动步长。如每 5 秒统计最近 10 秒。</p>
+            </div>
+            <div class="fl-window-card">
+                <h3>会话窗口</h3>
+                <span class="fl-en">Session Window</span>
+                <p>根据活动间隙动态划分，适合用户行为分析等场景。</p>
+            </div>
+            <div class="fl-window-card">
+                <h3>全局窗口</h3>
+                <span class="fl-en">Global Window</span>
+                <p>统一处理所有数据，需配合自定义触发器使用。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Watermark 演示 -->
+    <section id="fl-watermark" class="fl-section">
+        <h2 class="fl-section-title">Watermark 水位线</h2>
+        <p class="fl-section-desc">处理事件时间下的滞后数据，允许一定延迟的数据到达后仍被处理</p>
+
+        <div class="fl-demo-area">
+            <div class="fl-demo-controls">
+                <button class="fl-btn-play" onclick="flPlayWatermarkDemo()">&#9654; 播放演示</button>
+                <button class="fl-btn-reset" onclick="flResetWatermarkDemo()">&#8634; 重置</button>
+            </div>
+
+            <p style="color: var(--fl-text-secondary); margin-bottom: 12px;">事件时间流（绿色=已处理，红色=迟到被丢弃）</p>
+            <div class="fl-event-stream" id="fl-event-stream">
+                <div class="fl-event" data-time="1"><span class="fl-event-time">t=1</span></div>
+                <div class="fl-event" data-time="3"><span class="fl-event-time">t=3</span></div>
+                <div class="fl-event late" data-time="2"><span class="fl-event-time">t=2</span></div>
+                <div class="fl-event" data-time="5"><span class="fl-event-time">t=5</span></div>
+                <div class="fl-event" data-time="8"><span class="fl-event-time">t=8</span></div>
+                <div class="fl-event" data-time="12"><span class="fl-event-time">t=12</span></div>
+            </div>
+
+            <div class="fl-watermark-line" id="fl-watermark-line" style="width: 0%;"></div>
+
+            <div class="fl-demo-result" id="fl-watermark-result">
+                点击播放查看 Watermark 如何处理迟到数据
+            </div>
+        </div>
+    </section>
+
+    <!-- Checkpoint -->
+    <section id="fl-checkpoint" class="fl-section">
+        <h2 class="fl-section-title">Checkpoint 机制</h2>
+        <p class="fl-section-desc">基于 barrier 的分布式快照，实现 Exactly-once 状态化容错</p>
+
+        <div class="fl-demo-controls">
+            <button class="fl-btn-play" onclick="flPlayCheckpoint()">&#9654; 播放 Checkpoint 流程</button>
+            <button class="fl-btn-reset" onclick="flResetCheckpoint()">&#8634; 重置</button>
+        </div>
+
+        <div class="fl-checkpoint-flow">
+            <div class="fl-checkpoint-step" id="fl-cp-step1">
+                <h4>1. JobManager 触发</h4>
+                <p>周期性向 Source 发送 barrier</p>
+            </div>
+            <div class="fl-flow-arrow">&#8594;</div>
+            <div class="fl-checkpoint-step" id="fl-cp-step2">
+                <h4>2. Source 快照</h4>
+                <p>记录消费 offset 后向下游传递 barrier</p>
+            </div>
+            <div class="fl-flow-arrow">&#8594;</div>
+            <div class="fl-checkpoint-step" id="fl-cp-step3">
+                <h4>3. 算子快照状态</h4>
+                <p>每个算子收到 barrier 后保存当前状态</p>
+            </div>
+            <div class="fl-flow-arrow">&#8594;</div>
+            <div class="fl-checkpoint-step" id="fl-cp-step4">
+                <h4>4. Checkpoint 完成</h4>
+                <p>所有算子汇报完成，通知 JobManager</p>
+            </div>
+        </div>
+
+        <div class="fl-demo-result" id="fl-checkpoint-result">
+            点击播放查看 Checkpoint 完整流程
+        </div>
+    </section>
+
+    <!-- Structured Streaming -->
+    <section id="fl-ss" class="fl-section">
+        <h2 class="fl-section-title">Structured Streaming</h2>
+        <p class="fl-section-desc">Spark 生态中的实时流处理组件：把流式数据看作不断增加的表</p>
+
+        <div class="fl-ss-model">
+            <div class="fl-ss-card">
+                <h3>核心抽象</h3>
+                <p>无界输入表（Unbounded Input Table）：流式数据 = 不断增加的数据库表。</p>
+            </div>
+            <div class="fl-ss-card">
+                <h3>Result Table</h3>
+                <p>对输入表执行标准 SQL 查询，每次查询产生的结果持续更新。</p>
+            </div>
+            <div class="fl-ss-card">
+                <h3>处理模式</h3>
+                <p>微批处理（默认，秒级延迟，强一致性） vs 持续处理（毫秒级延迟）。</p>
+            </div>
+        </div>
+
+        <h3 style="text-align: center; margin: 40px 0 20px; color: var(--fl-primary);">Output 输出模式</h3>
+        <div class="fl-output-modes">
+            <div class="fl-mode-card">
+                <h4>Complete Mode</h4>
+                <span class="fl-en">完整模式</span>
+                <p>输出完整结果集，适用于聚合查询。</p>
+            </div>
+            <div class="fl-mode-card">
+                <h4>Append Mode</h4>
+                <span class="fl-en">追加模式</span>
+                <p>仅输出新增数据，适用于非聚合查询。</p>
+            </div>
+            <div class="fl-mode-card">
+                <h4>Update Mode</h4>
+                <span class="fl-en">更新模式</span>
+                <p>仅输出更新/变化的数据，适用于有更新的查询。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 实时链路 -->
+    <section id="fl-pipeline" class="fl-section">
+        <h2 class="fl-section-title">华为实时流处理技术架构</h2>
+        <p class="fl-section-desc">Flume → Kafka → Flink/Structured Streaming → Redis/MySQL → 可视化展示</p>
+
+        <div class="fl-pipeline">
+            <div class="fl-pipeline-stage">
+                <h4>Flume</h4>
+                <p>实时数据采集层</p>
+            </div>
+            <div class="fl-pipeline-arrow">&#8594;</div>
+            <div class="fl-pipeline-stage">
+                <h4>Kafka</h4>
+                <p>消息队列 / 实时缓存</p>
+            </div>
+            <div class="fl-pipeline-arrow">&#8594;</div>
+            <div class="fl-pipeline-stage">
+                <h4>Flink</h4>
+                <p>实时计算引擎</p>
+            </div>
+            <div class="fl-pipeline-arrow">&#8594;</div>
+            <div class="fl-pipeline-stage">
+                <h4>Redis / MySQL</h4>
+                <p>实时数据落地</p>
+            </div>
+            <div class="fl-pipeline-arrow">&#8594;</div>
+            <div class="fl-pipeline-stage">
+                <h4>可视化</h4>
+                <p>实时展示与分析</p>
+            </div>
+        </div>
+    </section>
+
+    <script src="../../assets/js/flink.js"></script>
+</body>
+</html>

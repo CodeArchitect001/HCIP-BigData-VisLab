@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kafka 消息队列 - VisLab</title>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <style>
+        .placeholder-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            min-height: 100vh;
+        }
+
+        .placeholder-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .placeholder-header h1 {
+            font-size: 2.2rem;
+            color: var(--accent-master);
+            margin-bottom: 12px;
+        }
+
+        .placeholder-header p {
+            color: var(--text-secondary);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--accent-master);
+            text-decoration: none;
+            margin-bottom: 30px;
+            padding: 8px 14px;
+            border: 1px solid var(--accent-master);
+            border-radius: 6px;
+            transition: all 0.25s;
+        }
+
+        .back-link:hover {
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .topic-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .topic-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 24px;
+        }
+
+        .topic-item h3 {
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .topic-item p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .pending-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: rgba(148, 163, 184, 0.15);
+            color: var(--text-muted);
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="placeholder-container">
+        <a href="../index.html" class="back-link">&#8592; 返回实时流计算模块</a>
+
+        <header class="placeholder-header">
+            <h1>Kafka 消息队列</h1>
+            <p>第四模块 | 待开发可视化模块</p>
+        </header>
+
+        <div class="topic-list">
+            <div class="topic-item">
+                <h3>&#128172; Topic / Partition / Broker</h3>
+                <p>Kafka 核心概念：Topic 消息分类、Partition 分区、Broker 代理节点。</p>
+                <span class="pending-badge">待开发</span>
+            </div>
+            <div class="topic-item">
+                <h3>&#128101; Consumer Group</h3>
+                <p>消费组内负载均衡、组间独立消费，一个 Partition 只能被组内一个 Consumer 消费。</p>
+                <span class="pending-badge">待开发</span>
+            </div>
+            <div class="topic-item">
+                <h3>&#128190; 日志存储与清理</h3>
+                <p>Segment 分段存储、delete/compact 清理策略、保留时间/大小配置。</p>
+                <span class="pending-badge">待开发</span>
+            </div>
+            <div class="topic-item">
+                <h3>&#128187; Java API 与命令行</h3>
+                <p>kafka-topics.sh、kafka-console-producer/consumer.sh 与 KafkaProducer/KafkaConsumer API。</p>
+                <span class="pending-badge">待开发</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
