@@ -309,8 +309,34 @@
                 <p>对输入表执行标准 SQL 查询，每次查询产生的结果持续更新。</p>
             </div>
             <div class="fl-ss-card">
-                <h3>处理模式</h3>
-                <p>微批处理（默认，秒级延迟，强一致性） vs 持续处理（毫秒级延迟）。</p>
+                <h3>处理模式对比</h3>
+                <p>微批处理（默认，秒级延迟，强一致性） vs 持续处理（毫秒级延迟）。点击下方按钮播放动画对比。</p>
+            </div>
+        </div>
+
+        <h3 style="text-align: center; margin: 40px 0 20px; color: var(--fl-primary);">微批处理 vs 持续处理</h3>
+        <div class="fl-demo-area">
+            <div class="fl-demo-controls">
+                <button class="fl-btn-play" onclick="flPlayMicroBatch()">&#9654; 播放微批处理</button>
+                <button class="fl-btn-play" onclick="flPlayContinuous()" style="background: #10b981;">&#9654; 播放持续处理</button>
+                <button class="fl-btn-reset" onclick="flResetProcessingMode()">&#8634; 重置</button>
+            </div>
+            <div class="fl-mode-compare">
+                <div class="fl-mode-column">
+                    <h4 style="color: var(--fl-primary); margin-bottom: 12px;">微批处理 Micro-Batch</h4>
+                    <div class="fl-mode-timeline" id="fl-microbatch-timeline"></div>
+                    <div class="fl-mode-events" id="fl-microbatch-events"></div>
+                    <div class="fl-batch-boxes" id="fl-microbatch-batches"></div>
+                </div>
+                <div class="fl-mode-column">
+                    <h4 style="color: #10b981; margin-bottom: 12px;">持续处理 Continuous</h4>
+                    <div class="fl-mode-timeline" id="fl-continuous-timeline"></div>
+                    <div class="fl-mode-events" id="fl-continuous-events"></div>
+                    <div class="fl-continuous-output" id="fl-continuous-output"></div>
+                </div>
+            </div>
+            <div class="fl-demo-result" id="fl-mode-result">
+                点击按钮对比两种处理模式
             </div>
         </div>
 

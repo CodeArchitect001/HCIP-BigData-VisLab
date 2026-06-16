@@ -191,3 +191,132 @@ function flResetCheckpoint() {
         result.innerHTML = '点击播放查看 Checkpoint 完整流程';
     }
 }
+
+// Micro-batch vs Continuous processing animation
+let flModeTimer = null;
+const flEvents = [
+    { id: 'e1', label: 'E1' },
+    { id: 'e2', label: 'E2' },
+    { id: 'e3', label: 'E3' },
+    { id: 'e4', label: 'E4' },
+    { id: 'e5', label: 'E5' },
+    { id: 'e6', label: 'E6' }
+];
+
+function flResetProcessingMode() {
+    if (flModeTimer) clearInterval(flModeTimer);
+
+    const mbEvents = document.getElementById('fl-microbatch-events');
+    const mbBatches = document.getElementById('fl-microbatch-batches');
+    const cEvents = document.getElementById('fl-continuous-events');
+    const cOutput = document.getElementById('fl-continuous-output');
+    const result = document.getElementById('fl-mode-result');
+
+    if (mbEvents) mbEvents.innerHTML = '';
+    if (cEvents) cEvents.innerHTML = '';
+    if (cOutput) cOutput.innerHTML = '';
+    if (mbBatches) mbBatches.innerHTML = '';
+    if (result) result.innerHTML = '点击按钮对比两种处理模式';
+}
+
+function flRenderEvents() {
+    const mbEvents = document.getElementById('fl-microbatch-events');
+    const cEvents = document.getElementById('fl-continuous-events');
+
+    mbEvents.innerHTML = flEvents.map((e, i) =>
+        `<div class="fl-mode-event" id="fl-mb-${e.id}" style="transition-delay: ${i * 50}ms">${e.label}</div>`
+    ).join('');
+
+    cEvents.innerHTML = flEvents.map((e, i) =>
+        `<div class="fl-mode-event" id="fl-c-${e.id}" style="transition-delay: ${i * 50}ms">${e.label}</div>`
+    ).join('');
+}
+
+function flPlayMicroBatch() {
+    flResetProcessingMode();
+    flRenderEvents();
+
+    const mbBatches = document.getElementById('fl-microbatch-batches');
+    const result = document.getElementById('fl-mode-result');
+
+    const batches = [
+        { name: 'Batch 1', indices: [0, 1, 2] },
+        { name: 'Batch 2', indices: [3, 4, 5] }
+    ];
+
+    mbBatches.innerHTML = batches.map((b, i) => `
+        <div class="fl-batch-box" id="fl-batch-${i}">
+            <div class="fl-batch-box-title">${b.name}</div>
+            <div class="fl-batch-items">${b.indices.map(idx => `
+                <div class="fl-batch-item" id="fl-batch-${i}-item-${idx}">${flEvents[idx].label}</div>
+            `).join('')}</div>
+        </div>
+    `).join('');
+
+    result.innerHTML = '<p style="color: var(--fl-primary);">微批处理：将流数据切分为小批次，按批次触发计算...</p>';
+
+    let step = 0;
+    flModeTimer = setInterval(() => {
+        if (step === 0) {
+            document.getElementById('fl-batch-0').classList.add('active');
+            batches[0].indices.forEach(idx => {
+                setTimeout(() => {
+                    document.getElementById(`fl-mb-${flEvents[idx].id}`).classList.add('processed');
+                    document.getElementById(`fl-batch-0-item-${idx}`).classList.add('active');
+                }, idx * 400);
+            });
+            result.innerHTML = '<p><strong style="color: var(--fl-primary);">Batch 1 触发：</strong>收集 E1-E3，统一计算</p>';
+        } else if (step === 1) {
+            document.getElementById('fl-batch-0').classList.remove('active');
+            document.getElementById('fl-batch-1').classList.add('active');
+            batches[1].indices.forEach(idx => {
+                setTimeout(() => {
+                    document.getElementById(`fl-mb-${flEvents[idx].id}`).classList.add('processed');
+                    document.getElementById(`fl-batch-1-item-${idx}`).classList.add('active');
+                }, (idx - 3) * 400);
+            });
+            result.innerHTML = '<p><strong style="color: var(--fl-primary);">Batch 2 触发：</strong>收集 E4-E6，统一计算</p>';
+        } else {
+            clearInterval(flModeTimer);
+            result.innerHTML = `
+                <p><strong style="color: var(--fl-primary);">微批处理完成</strong></p>
+                <p style="color: var(--fl-text-secondary); font-size: 0.85rem; margin-top: 0.5rem;">
+                    特点：秒级延迟、强一致性、吞吐高、适合聚合类查询
+                </p>
+            `;
+            setTimeout(flResetProcessingMode, 4000);
+        }
+        step++;
+    }, 1800);
+}
+
+function flPlayContinuous() {
+    flResetProcessingMode();
+    flRenderEvents();
+
+    const cOutput = document.getElementById('fl-continuous-output');
+    const result = document.getElementById('fl-mode-result');
+
+    result.innerHTML = '<p style="color: #10b981;">持续处理：每条数据到达后立即处理，毫秒级延迟...</p>';
+
+    flEvents.forEach((e, i) => {
+        setTimeout(() => {
+            document.getElementById(`fl-c-${e.id}`).classList.add('continuous-processed');
+            const item = document.createElement('div');
+            item.className = 'fl-continuous-item';
+            item.textContent = e.label;
+            cOutput.appendChild(item);
+            setTimeout(() => item.classList.add('active'), 30);
+        }, i * 500);
+    });
+
+    setTimeout(() => {
+        result.innerHTML = `
+            <p><strong style="color: #10b981;">持续处理完成</strong></p>
+            <p style="color: var(--fl-text-secondary); font-size: 0.85rem; margin-top: 0.5rem;">
+                特点：毫秒级延迟、逐条处理、吞吐相对较低、适合端到端低延迟场景
+            </p>
+        `;
+        setTimeout(flResetProcessingMode, 4000);
+    }, flEvents.length * 500 + 500);
+}
