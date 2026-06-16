@@ -320,3 +320,114 @@ function flPlayContinuous() {
         setTimeout(flResetProcessingMode, 4000);
     }, flEvents.length * 500 + 500);
 }
+
+// Structured Streaming output modes animation
+let flOutputTimer = null;
+
+const flOutputData = [
+    { ts: 1, user: 'A', count: 1 },
+    { ts: 2, user: 'B', count: 1 },
+    { ts: 3, user: 'A', count: 2 },
+    { ts: 4, user: 'B', count: 2 },
+    { ts: 5, user: 'C', count: 1 }
+];
+
+function flResetOutputMode() {
+    if (flOutputTimer) clearInterval(flOutputTimer);
+
+    const inputRows = document.querySelectorAll('#fl-output-input .fl-input-row');
+    inputRows.forEach(row => row.classList.remove('active', 'append-active', 'update-active'));
+
+    const result = document.getElementById('fl-output-result');
+    if (result) {
+        result.innerHTML = '<div class="fl-result-placeholder">选择模式并播放</div>';
+    }
+
+    const desc = document.getElementById('fl-output-desc');
+    if (desc) {
+        desc.textContent = '三种输出模式：Complete 输出完整结果集，Append 仅追加新增，Update 仅输出变化';
+    }
+}
+
+function flPlayOutputMode(mode) {
+    flResetOutputMode();
+
+    const inputRows = document.querySelectorAll('#fl-output-input .fl-input-row');
+    const result = document.getElementById('fl-output-result');
+    const desc = document.getElementById('fl-output-desc');
+    if (!result || !inputRows.length) return;
+
+    const activeClass = mode === 'append' ? 'append-active' : (mode === 'update' ? 'update-active' : 'active');
+    const color = mode === 'append' ? '#3b82f6' : (mode === 'update' ? '#a855f7' : 'var(--fl-primary)');
+    const modeName = mode === 'complete' ? 'Complete 完整模式' : (mode === 'append' ? 'Append 追加模式' : 'Update 更新模式');
+
+    let step = 0;
+    const totals = {};
+
+    desc.innerHTML = `<p style="color: ${color};">${modeName} 演示中...</p>`;
+
+    flOutputTimer = setInterval(() => {
+        if (step >= flOutputData.length) {
+            clearInterval(flOutputTimer);
+            const summary = mode === 'complete'
+                ? '每次触发都输出完整的聚合结果表'
+                : (mode === 'append'
+                    ? '每次只追加最新到达的数据行'
+                    : '每次只输出聚合值发生变化的数据行');
+            desc.innerHTML = `
+                <p><strong style="color: ${color};">${modeName} 完成</strong></p>
+                <p style="color: var(--fl-text-secondary); font-size: 0.85rem; margin-top: 0.5rem;">${summary}</p>
+            `;
+            setTimeout(flResetOutputMode, 4000);
+            return;
+        }
+
+        const data = flOutputData[step];
+        inputRows[step].classList.add(activeClass);
+        totals[data.user] = (totals[data.user] || 0) + data.count;
+
+        let rowsHTML = '';
+        if (mode === 'complete') {
+            const users = Object.keys(totals).sort();
+            rowsHTML = users.map((u, i) => `
+                <div class="fl-result-row" style="transition-delay: ${i * 80}ms">
+                    <span class="fl-input-kv">user=${u}, count=${totals[u]}</span>
+                </div>
+            `).join('');
+        } else if (mode === 'append') {
+            rowsHTML = flOutputData.slice(0, step + 1).map((e, i) => `
+                <div class="fl-result-row" style="transition-delay: ${i * 60}ms">
+                    <span class="fl-input-kv">t=${e.ts}, user=${e.user}, count=${e.count}</span>
+                </div>
+            `).join('');
+        } else {
+            const prevTotals = {};
+            for (let i = 0; i < step; i++) {
+                const e = flOutputData[i];
+                prevTotals[e.user] = (prevTotals[e.user] || 0) + e.count;
+            }
+            const changed = Object.keys(totals)
+                .filter(u => totals[u] !== prevTotals[u])
+                .sort();
+            rowsHTML = changed.map((u, i) => `
+                <div class="fl-result-row" style="transition-delay: ${i * 80}ms">
+                    <span class="fl-input-kv">user=${u}, count=${totals[u]}</span>
+                </div>
+            `).join('');
+            if (!changed.length) {
+                rowsHTML = '<div class="fl-result-placeholder">本触发无变化行</div>';
+            }
+        }
+
+        result.innerHTML = rowsHTML;
+        requestAnimationFrame(() => {
+            result.querySelectorAll('.fl-result-row').forEach((row, i) => {
+                setTimeout(() => row.classList.add(activeClass), i * 80);
+            });
+        });
+
+        desc.innerHTML = `<p><strong style="color: ${color};">t=${data.ts}</strong> user=${data.user}, count=${data.count} 到达</p>`;
+
+        step++;
+    }, 1200);
+}
