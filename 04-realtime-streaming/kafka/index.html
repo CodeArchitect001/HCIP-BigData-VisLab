@@ -5,112 +5,310 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kafka 消息队列 - VisLab</title>
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <style>
-        .placeholder-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 60px 20px;
-            min-height: 100vh;
-        }
-
-        .placeholder-header {
-            text-align: center;
-            margin-bottom: 50px;
-        }
-
-        .placeholder-header h1 {
-            font-size: 2.2rem;
-            color: var(--accent-master);
-            margin-bottom: 12px;
-        }
-
-        .placeholder-header p {
-            color: var(--text-secondary);
-        }
-
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--accent-master);
-            text-decoration: none;
-            margin-bottom: 30px;
-            padding: 8px 14px;
-            border: 1px solid var(--accent-master);
-            border-radius: 6px;
-            transition: all 0.25s;
-        }
-
-        .back-link:hover {
-            background: rgba(245, 158, 11, 0.1);
-        }
-
-        .topic-list {
-            display: grid;
-            gap: 16px;
-        }
-
-        .topic-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 24px;
-        }
-
-        .topic-item h3 {
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            font-size: 1.1rem;
-        }
-
-        .topic-item p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
-
-        .pending-badge {
-            display: inline-block;
-            font-size: 0.75rem;
-            padding: 3px 10px;
-            border-radius: 20px;
-            background: rgba(148, 163, 184, 0.15);
-            color: var(--text-muted);
-            margin-top: 12px;
-        }
-    </style>
+    <link rel="stylesheet" href="../../assets/css/kafka.css">
 </head>
-<body>
-    <div class="placeholder-container">
-        <a href="../index.html" class="back-link">&#8592; 返回实时流计算模块</a>
+<body class="ka-page">
+    <nav class="ka-top-nav">
+        <div class="ka-nav-brand">
+            <span class="ka-logo">K</span>
+            <span>Kafka 消息队列可视化</span>
+        </div>
+        <a href="../index.html" class="ka-nav-back">&#8592; 返回实时流计算模块</a>
+    </nav>
 
-        <header class="placeholder-header">
-            <h1>Kafka 消息队列</h1>
-            <p>第四模块 | 待开发可视化模块</p>
-        </header>
+    <header class="ka-hero">
+        <h1>&#128172; Kafka 消息队列</h1>
+        <p>高吞吐、分布式、基于发布/订阅模式的实时消息系统，用于实时数据采集与流式数据传输。</p>
+    </header>
 
-        <div class="topic-list">
-            <div class="topic-item">
-                <h3>&#128172; Topic / Partition / Broker</h3>
-                <p>Kafka 核心概念：Topic 消息分类、Partition 分区、Broker 代理节点。</p>
-                <span class="pending-badge">待开发</span>
+    <!-- 核心概念 -->
+    <section class="ka-section">
+        <h2 class="ka-section-title">核心概念</h2>
+        <p class="ka-section-desc">Kafka 中 Topic、Partition、Broker、Producer、Consumer 的关系</p>
+
+        <div class="ka-grid">
+            <div class="ka-card">
+                <h3>Topic（主题）</h3>
+                <p>消息类别/队列。生产者按 Topic 发送消息，消费者按 Topic 订阅消息。</p>
             </div>
-            <div class="topic-item">
-                <h3>&#128101; Consumer Group</h3>
-                <p>消费组内负载均衡、组间独立消费，一个 Partition 只能被组内一个 Consumer 消费。</p>
-                <span class="pending-badge">待开发</span>
+            <div class="ka-card">
+                <h3>Partition（分区）</h3>
+                <p>Topic 的物理分片。一个 Topic 可分为多个 Partition，实现并行生产和消费。</p>
             </div>
-            <div class="topic-item">
-                <h3>&#128190; 日志存储与清理</h3>
-                <p>Segment 分段存储、delete/compact 清理策略、保留时间/大小配置。</p>
-                <span class="pending-badge">待开发</span>
+            <div class="ka-card">
+                <h3>Broker（代理）</h3>
+                <p>Kafka 集群中的服务器节点，负责接收、存储和转发消息。</p>
             </div>
-            <div class="topic-item">
-                <h3>&#128187; Java API 与命令行</h3>
-                <p>kafka-topics.sh、kafka-console-producer/consumer.sh 与 KafkaProducer/KafkaConsumer API。</p>
-                <span class="pending-badge">待开发</span>
+            <div class="ka-card">
+                <h3>Consumer Group</h3>
+                <p>消费组内 Consumer 分担不同 Partition；组间独立消费，互不影响。</p>
+            </div>
+            <div class="ka-card">
+                <h3>Offset（偏移量）</h3>
+                <p>消息在 Partition 中的唯一标识。Consumer 通过 offset 控制消费位置。</p>
+            </div>
+            <div class="ka-card">
+                <h3>Replica（副本）</h3>
+                <p>每个 Partition 有 Leader 和 Follower 副本，保证高可用和数据可靠性。</p>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- 拓扑架构 -->
+    <section class="ka-section">
+        <h2 class="ka-section-title">拓扑架构</h2>
+        <p class="ka-section-desc">Producer &#8594; Broker &#8594; Consumer，依赖 ZooKeeper 协调管理</p>
+
+        <div class="ka-architecture">
+            <div class="ka-arch-layer">
+                <div class="ka-arch-node" onclick="selectArchNode(this)">
+                    <strong>Producer</strong>
+                    <span>生产者</span>
+                </div>
+            </div>
+            <div class="ka-arrow">&#8594;</div>
+            <div class="ka-arch-layer">
+                <div class="ka-arch-node" onclick="selectArchNode(this)">
+                    <strong>Broker</strong>
+                    <span>消息代理</span>
+                </div>
+                <div class="ka-arch-node" onclick="selectArchNode(this)">
+                    <strong>ZooKeeper</strong>
+                    <span>协调服务</span>
+                </div>
+            </div>
+            <div class="ka-arrow">&#8594;</div>
+            <div class="ka-arch-layer">
+                <div class="ka-arch-node" onclick="selectArchNode(this)">
+                    <strong>Consumer</strong>
+                    <span>消费者</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="ka-broker-cluster" id="ka-partition-brokers">
+            <div class="ka-broker">
+                <h4>Broker 1</h4>
+                <div class="ka-partition">P1</div>
+                <div class="ka-partition">P2</div>
+            </div>
+            <div class="ka-broker">
+                <h4>Broker 2</h4>
+                <div class="ka-partition">P3</div>
+                <div class="ka-partition">P4</div>
+            </div>
+            <div class="ka-broker">
+                <h4>Broker 3</h4>
+                <div class="ka-partition">P5</div>
+                <div class="ka-partition">P6</div>
+            </div>
+        </div>
+
+        <div class="ka-demo-controls">
+            <button class="ka-btn ka-btn-play" onclick="kaPlayPartitionDemo()">&#9654; 消息路由到 Partition</button>
+            <button class="ka-btn ka-btn-reset" onclick="kaResetPartitionDemo()">&#8634; 重置</button>
+        </div>
+        <div class="ka-demo-result" id="ka-partition-result">点击播放查看消息如何分发到不同 Partition</div>
+    </section>
+
+    <!-- 副本机制 -->
+    <section class="ka-section">
+        <h2 class="ka-section-title">副本机制</h2>
+        <p class="ka-section-desc">Leader 负责读写，Follower 实时同步，实现高可用</p>
+
+        <div class="ka-demo-stage">
+            <div class="ka-replica-demo">
+                <div class="ka-replica-broker">
+                    <h4>Broker 1</h4>
+                    <div class="ka-replica-partition leader">P0 Leader</div>
+                </div>
+                <div class="ka-replica-broker">
+                    <h4>Broker 2</h4>
+                    <div class="ka-replica-partition follower">P0 Replica</div>
+                </div>
+                <div class="ka-replica-broker">
+                    <h4>Broker 3</h4>
+                    <div class="ka-replica-partition follower">P0 Replica</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ka-demo-controls">
+            <button class="ka-btn ka-btn-play" onclick="kaPlayReplicaDemo()">&#9654; 播放副本同步</button>
+            <button class="ka-btn ka-btn-reset" onclick="kaResetReplicaDemo()">&#8634; 重置</button>
+        </div>
+        <div class="ka-demo-result" id="ka-replica-result">点击播放查看 Leader-Follower 副本同步机制</div>
+    </section>
+
+    <!-- 生产流程 -->
+    <section class="ka-section">
+        <h2 class="ka-section-title">消息生产流程</h2>
+        <p class="ka-section-desc">从 Producer 发送消息到 Broker 落盘的全过程</p>
+
+        <div class="ka-demo-stage">
+            <div class="ka-producer-flow" id="ka-produce-flow">
+                <div class="ka-stage-box" id="ka-produce-step1">
+                    <strong>Producer</strong>
+                    <span>序列化消息</span>
+                </div>
+                <div class="ka-arrow">&#8594;</div>
+                <div class="ka-stage-box" id="ka-produce-step2">
+                    <strong>Partitioner</strong>
+                    <span>选择分区</span>
+                </div>
+                <div class="ka-arrow">&#8594;</div>
+                <div class="ka-stage-box" id="ka-produce-step3">
+                    <strong>Leader Broker</strong>
+                    <span>写入日志</span>
+                </div>
+                <div class="ka-arrow">&#8594;</div>
+                <div class="ka-stage-box" id="ka-produce-step4">
+                    <strong>Follower</strong>
+                    <span>副本同步</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="ka-demo-controls">
+            <button class="ka-btn ka-btn-play" onclick="kaPlayProduceFlow()">&#9654; 播放生产流程</button>
+            <button class="ka-btn ka-btn-reset" onclick="kaResetProduceFlow()">&#8634; 重置</button>
+        </div>
+        <div class="ka-demo-result" id="ka-produce-result">点击播放查看 Producer &#8594; Broker 完整流程</div>
+    </section>
+
+    <!-- 消费流程 -->
+    <section class="ka-section">
+        <h2 class="ka-section-title">消息消费流程</h2>
+        <p class="ka-section-desc">Consumer Group 协调、拉取消息、提交 offset</p>
+
+        <div class="ka-demo-stage">
+            <div class="ka-consumer-flow" id="ka-consume-flow">
+                <div class="ka-stage-box" id="ka-consume-step1">
+                    <strong>Join Group</strong>
+                    <span>Coordinator 分配</span>
+                </div>
+                <div class="ka-arrow">&#8594;</div>
+                <div class="ka-stage-box" id="ka-consume-step2">
+                    <strong>Fetch</strong>
+                    <span>拉取消息</span>
+                </div>
+                <div class="ka-arrow">&#8594;</div>
+                <div class="ka-stage-box" id="ka-consume-step3">
+                    <strong>Process</strong>
+                    <span>业务处理</span>
+                </div>
+                <div class="ka-arrow">&#8594;</div>
+                <div class="ka-stage-box" id="ka-consume-step4">
+                    <strong>Commit Offset</strong>
+                    <span>持久化偏移量</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="ka-demo-controls">
+            <button class="ka-btn ka-btn-play" onclick="kaPlayConsumeFlow()">&#9654; 播放消费流程</button>
+            <button class="ka-btn ka-btn-reset" onclick="kaResetConsumeFlow()">&#8634; 重置</button>
+        </div>
+        <div class="ka-demo-result" id="ka-consume-result">点击播放查看 Consumer Group 消费流程</div>
+    </section>
+
+    <!-- Consumer Group -->
+    <section class="ka-section">
+        <h2 class="ka-section-title">Consumer Group 分区分配</h2>
+        <p class="ka-section-desc">一个 Partition 只能被同一 Group 内的一个 Consumer 消费</p>
+
+        <div class="ka-demo-stage">
+            <div class="ka-consumer-group">
+                <div class="ka-consumer" id="ka-consumer-1">
+                    <h4>Consumer 1</h4>
+                    <div class="ka-assigned-partitions"></div>
+                </div>
+                <div class="ka-consumer" id="ka-consumer-2">
+                    <h4>Consumer 2</h4>
+                    <div class="ka-assigned-partitions"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ka-demo-controls">
+            <button class="ka-btn ka-btn-play" onclick="kaPlayConsumerGroupDemo()">&#9654; 播放分区分配</button>
+            <button class="ka-btn ka-btn-reset" onclick="kaResetConsumerGroupDemo()">&#8634; 重置</button>
+        </div>
+        <div class="ka-demo-result" id="ka-consumer-result">点击播放查看 Consumer Group 分区分配</div>
+    </section>
+
+    <!-- 命令行与 API -->
+    <section class="ka-section">
+        <h2 class="ka-section-title">常用命令与 Java API</h2>
+        <p class="ka-section-desc">kafka-topics.sh 与 KafkaProducer / KafkaConsumer 核心配置</p>
+
+        <div class="ka-grid">
+            <div class="ka-card">
+                <h3>创建 Topic</h3>
+                <div class="ka-code-block">
+<span class="ka-code-keyword">kafka-topics.sh</span> --create \
+  --topic order-events \
+  --partitions 3 \
+  --replication-factor 2 \
+  --bootstrap-server node1:9092
+                </div>
+            </div>
+            <div class="ka-card">
+                <h3>查看 Topic 列表</h3>
+                <div class="ka-code-block">
+<span class="ka-code-keyword">kafka-topics.sh</span> --list \
+  --bootstrap-server node1:9092
+                </div>
+            </div>
+            <div class="ka-card">
+                <h3>生产消息</h3>
+                <div class="ka-code-block">
+<span class="ka-code-keyword">kafka-console-producer.sh</span> \
+  --topic order-events \
+  --bootstrap-server node1:9092
+                </div>
+            </div>
+            <div class="ka-card">
+                <h3>消费消息</h3>
+                <div class="ka-code-block">
+<span class="ka-code-keyword">kafka-console-consumer.sh</span> \
+  --topic order-events \
+  --from-beginning \
+  --bootstrap-server node1:9092
+                </div>
+            </div>
+        </div>
+
+        <div class="ka-card" style="margin-top: 24px;">
+            <h3>Java Producer 示例</h3>
+            <div class="ka-code-block">
+<span class="ka-code-keyword">Properties</span> props = <span class="ka-code-keyword">new</span> Properties();
+props.put(<span class="ka-code-string">"bootstrap.servers"</span>, <span class="ka-code-string">"node1:9092,node2:9092"</span>);
+props.put(<span class="ka-code-string">"key.serializer"</span>, <span class="ka-code-string">"StringSerializer"</span>);
+props.put(<span class="ka-code-string">"value.serializer"</span>, <span class="ka-code-string">"StringSerializer"</span>);
+
+<span class="ka-code-keyword">KafkaProducer</span>&lt;String, String&gt; producer =
+    <span class="ka-code-keyword">new</span> KafkaProducer&lt;&gt;(props);
+<span class="ka-code-keyword">ProducerRecord</span>&lt;String, String&gt; record =
+    <span class="ka-code-keyword">new</span> ProducerRecord&lt;&gt;(<span class="ka-code-string">"order-events"</span>, <span class="ka-code-string">"key"</span>, <span class="ka-code-string">"value"</span>);
+producer.send(record);
+producer.close();
+            </div>
+        </div>
+
+        <div class="ka-card" style="margin-top: 20px;">
+            <h3>Java Consumer 关键配置</h3>
+            <div class="ka-code-block">
+props.put(<span class="ka-code-string">"bootstrap.servers"</span>, <span class="ka-code-string">"node1:9092"</span>);
+props.put(<span class="ka-code-string">"group.id"</span>, <span class="ka-code-string">"order-consumer-group"</span>);
+props.put(<span class="ka-code-string">"key.deserializer"</span>, <span class="ka-code-string">"StringDeserializer"</span>);
+props.put(<span class="ka-code-string">"value.deserializer"</span>, <span class="ka-code-string">"StringDeserializer"</span>);
+props.put(<span class="ka-code-string">"enable.auto.commit"</span>, <span class="ka-code-string">"true"</span>);  <span class="ka-code-comment">// 自动提交 offset</span>
+props.put(<span class="ka-code-string">"auto.offset.reset"</span>, <span class="ka-code-string">"earliest"</span>);  <span class="ka-code-comment">// 从头消费</span>
+            </div>
+        </div>
+    </section>
+
+    <script src="../../assets/js/kafka.js"></script>
 </body>
 </html>
