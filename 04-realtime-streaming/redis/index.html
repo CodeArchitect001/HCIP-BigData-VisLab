@@ -5,112 +5,318 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redis 高速缓存 - VisLab</title>
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <style>
-        .placeholder-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 60px 20px;
-            min-height: 100vh;
-        }
-
-        .placeholder-header {
-            text-align: center;
-            margin-bottom: 50px;
-        }
-
-        .placeholder-header h1 {
-            font-size: 2.2rem;
-            color: var(--accent-master);
-            margin-bottom: 12px;
-        }
-
-        .placeholder-header p {
-            color: var(--text-secondary);
-        }
-
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--accent-master);
-            text-decoration: none;
-            margin-bottom: 30px;
-            padding: 8px 14px;
-            border: 1px solid var(--accent-master);
-            border-radius: 6px;
-            transition: all 0.25s;
-        }
-
-        .back-link:hover {
-            background: rgba(245, 158, 11, 0.1);
-        }
-
-        .topic-list {
-            display: grid;
-            gap: 16px;
-        }
-
-        .topic-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 24px;
-        }
-
-        .topic-item h3 {
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            font-size: 1.1rem;
-        }
-
-        .topic-item p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
-
-        .pending-badge {
-            display: inline-block;
-            font-size: 0.75rem;
-            padding: 3px 10px;
-            border-radius: 20px;
-            background: rgba(148, 163, 184, 0.15);
-            color: var(--text-muted);
-            margin-top: 12px;
-        }
-    </style>
+    <link rel="stylesheet" href="../../assets/css/redis.css">
 </head>
-<body>
-    <div class="placeholder-container">
-        <a href="../index.html" class="back-link">&#8592; 返回实时流计算模块</a>
+<body class="re-page">
+    <nav class="re-top-nav">
+        <div class="re-nav-brand">
+            <span class="re-logo">R</span>
+            <span>Redis 高速缓存可视化</span>
+        </div>
+        <a href="../index.html" class="re-nav-back">&#8592; 返回实时流计算模块</a>
+    </nav>
 
-        <header class="placeholder-header">
-            <h1>Redis 高速缓存</h1>
-            <p>第四模块 | 待开发可视化模块</p>
-        </header>
+    <header class="re-hero">
+        <h1>&#128293; Redis 高速缓存</h1>
+        <p>高性能 key-value 内存数据库，亚毫秒级响应，常用于实时计算结果缓存、计数器、排行榜与会话管理。</p>
+    </header>
 
-        <div class="topic-list">
-            <div class="topic-item">
-                <h3>&#128293; 数据类型</h3>
-                <p>String、Hash、List、Set、Sorted Set 等常用数据类型与应用场景。</p>
-                <span class="pending-badge">待开发</span>
+    <!-- 核心特点 -->
+    <section class="re-section">
+        <h2 class="re-section-title">核心特点</h2>
+        <p class="re-section-desc">内存操作、数据类型丰富、支持持久化与分布式集群</p>
+
+        <div class="re-grid">
+            <div class="re-card">
+                <h3>&#9889; 高性能</h3>
+                <p>数据驻留内存，读写速度极快，轻松达到十万级 QPS。</p>
             </div>
-            <div class="topic-item">
-                <h3>&#128190; 持久化机制</h3>
-                <p>RDB 快照与 AOF 日志两种持久化方式的特点与取舍。</p>
-                <span class="pending-badge">待开发</span>
+            <div class="re-card">
+                <h3>&#128230; 数据类型丰富</h3>
+                <p>支持 String、Hash、List、Set、Sorted Set 等多种数据结构。</p>
             </div>
-            <div class="topic-item">
-                <h3>&#128168; Pipeline 与性能优化</h3>
-                <p>Pipeline 批量操作、内存淘汰策略、缓存穿透/击穿/雪崩应对方案。</p>
-                <span class="pending-badge">待开发</span>
+            <div class="re-card">
+                <h3>&#128340; TTL 过期</h3>
+                <p>通过 EXPIRE 设置 key 生存时间，支持验证码、会话等临时数据。</p>
             </div>
-            <div class="topic-item">
-                <h3>&#128200; 实时计算结果落地</h3>
-                <p>Flink 计算结果写入 Redis，供前端实时查询展示。</p>
-                <span class="pending-badge">待开发</span>
+            <div class="re-card">
+                <h3>&#128190; 持久化</h3>
+                <p>RDB 快照与 AOF 日志两种机制，平衡恢复速度与数据安全。</p>
+            </div>
+            <div class="re-card">
+                <h3>&#128168; Pipeline</h3>
+                <p>批量发送命令，减少网络往返，大幅提升吞吐。</p>
+            </div>
+            <div class="re-card">
+                <h3>&#127919; 实时落地</h3>
+                <p>Flink/Spark Streaming 计算结果写入 Redis，供前端实时查询。</p>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- 数据类型 -->
+    <section class="re-section">
+        <h2 class="re-section-title">数据类型与常用命令</h2>
+        <p class="re-section-desc">不同数据结构适配不同业务场景</p>
+
+        <div class="re-data-type-tabs">
+            <button class="re-tab" data-type="string" onclick="reShowDataType('string')">String</button>
+            <button class="re-tab" data-type="hash" onclick="reShowDataType('hash')">Hash</button>
+            <button class="re-tab" data-type="list" onclick="reShowDataType('list')">List</button>
+            <button class="re-tab" data-type="set" onclick="reShowDataType('set')">Set</button>
+            <button class="re-tab" data-type="zset" onclick="reShowDataType('zset')">Sorted Set</button>
+        </div>
+
+        <div class="re-tab-content" id="re-type-string">
+            <h3>String（字符串）</h3>
+            <p style="color: var(--re-text-secondary); margin: 8px 0 16px;">最基本数据类型，适合缓存、计数器、分布式锁等场景。</p>
+            <table class="re-command-table">
+                <tr><th>命令</th><th>功能</th><th>示例</th></tr>
+                <tr><td>SET</td><td>设置 key-value</td><td>SET name "zhang"</td></tr>
+                <tr><td>GET</td><td>获取 value</td><td>GET name</td></tr>
+                <tr><td>INCR</td><td>原子自增 1</td><td>INCR count</td></tr>
+                <tr><td>INCRBY</td><td>按指定值自增</td><td>INCRBY count 5</td></tr>
+                <tr><td>MSET/MGET</td><td>批量设置/获取</td><td>MSET k1 v1 k2 v2</td></tr>
+            </table>
+        </div>
+
+        <div class="re-tab-content" id="re-type-hash">
+            <h3>Hash（哈希）</h3>
+            <p style="color: var(--re-text-secondary); margin: 8px 0 16px;">字段映射表，适合存储对象，如用户信息。</p>
+            <table class="re-command-table">
+                <tr><th>命令</th><th>功能</th><th>示例</th></tr>
+                <tr><td>HSET</td><td>设置字段值</td><td>HSET user:1 name "zhang"</td></tr>
+                <tr><td>HGET</td><td>获取字段值</td><td>HGET user:1 name</td></tr>
+                <tr><td>HGETALL</td><td>获取所有字段</td><td>HGETALL user:1</td></tr>
+                <tr><td>HINCRBY</td><td>字段自增</td><td>HINCRBY user:1 age 1</td></tr>
+                <tr><td>HDEL</td><td>删除字段</td><td>HDEL user:1 age</td></tr>
+            </table>
+        </div>
+
+        <div class="re-tab-content" id="re-type-list">
+            <h3>List（有序双向链表）</h3>
+            <p style="color: var(--re-text-secondary); margin: 8px 0 16px;">适合最新 N 个数据、消息队列等场景。</p>
+            <table class="re-command-table">
+                <tr><th>命令</th><th>功能</th><th>示例</th></tr>
+                <tr><td>LPUSH</td><td>左侧插入</td><td>LPUSH mylist "a"</td></tr>
+                <tr><td>RPUSH</td><td>右侧插入</td><td>RPUSH mylist "b"</td></tr>
+                <tr><td>LPOP/RPOP</td><td>左右弹出</td><td>LPOP mylist</td></tr>
+                <tr><td>LRANGE</td><td>获取范围元素</td><td>LRANGE mylist 0 -1</td></tr>
+                <tr><td>LLEN</td><td>获取列表长度</td><td>LLEN mylist</td></tr>
+            </table>
+        </div>
+
+        <div class="re-tab-content" id="re-type-set">
+            <h3>Set（不重复无序集合）</h3>
+            <p style="color: var(--re-text-secondary); margin: 8px 0 16px;">适合标签、共同好友、去重等场景。</p>
+            <table class="re-command-table">
+                <tr><th>命令</th><th>功能</th><th>示例</th></tr>
+                <tr><td>SADD</td><td>添加元素</td><td>SADD myset "a"</td></tr>
+                <tr><td>SMEMBERS</td><td>获取所有元素</td><td>SMEMBERS myset</td></tr>
+                <tr><td>SISMEMBER</td><td>判断是否存在</td><td>SISMEMBER myset "a"</td></tr>
+                <tr><td>SINTER</td><td>交集</td><td>SINTER set1 set2</td></tr>
+                <tr><td>SDIFF</td><td>差集</td><td>SDIFF set1 set2</td></tr>
+            </table>
+        </div>
+
+        <div class="re-tab-content" id="re-type-zset">
+            <h3>Sorted Set（有序集合）</h3>
+            <p style="color: var(--re-text-secondary); margin: 8px 0 16px;">每个元素关联 score，自动排序，适合排行榜、热搜。</p>
+            <table class="re-command-table">
+                <tr><th>命令</th><th>功能</th><th>示例</th></tr>
+                <tr><td>ZADD</td><td>添加元素与分数</td><td>ZADD myzset 100 "m1"</td></tr>
+                <tr><td>ZRANGE</td><td>按分数升序</td><td>ZRANGE myzset 0 -1</td></tr>
+                <tr><td>ZREVRANGE</td><td>按分数降序</td><td>ZREVRANGE myzset 0 9</td></tr>
+                <tr><td>ZINCRBY</td><td>分数自增</td><td>ZINCRBY myzset 10 "m1"</td></tr>
+                <tr><td>ZREM</td><td>删除元素</td><td>ZREM myzset "m1"</td></tr>
+            </table>
+        </div>
+    </section>
+
+    <!-- 排行榜演示 -->
+    <section class="re-section">
+        <h2 class="re-section-title">场景演示：实时排行榜</h2>
+        <p class="re-section-desc">使用 Sorted Set 的 ZADD + ZREVRANGE 实现 Top N 排行</p>
+
+        <div class="re-demo-stage">
+            <div class="re-ranking-list" id="re-ranking-list">
+                <div class="re-demo-result">点击播放查看排行榜写入与查询过程</div>
+            </div>
+        </div>
+
+        <div class="re-demo-controls">
+            <button class="re-btn re-btn-play" onclick="rePlayRankingDemo()">&#9654; 播放排行榜演示</button>
+            <button class="re-btn re-btn-reset" onclick="reResetRankingDemo()">&#8634; 重置</button>
+        </div>
+        <div class="re-demo-result" id="re-ranking-result">点击播放查看 Sorted Set 排行榜演示</div>
+    </section>
+
+    <!-- 计数器演示 -->
+    <section class="re-section">
+        <h2 class="re-section-title">场景演示：原子计数器</h2>
+        <p class="re-section-desc">使用 String 的 INCR 实现高并发原子计数</p>
+
+        <div class="re-demo-stage">
+            <div class="re-counter-box">
+                <div style="color: var(--re-text-secondary);">page:view</div>
+                <div class="re-counter-value" id="re-counter-value">0</div>
+                <div style="color: var(--re-text-secondary); font-size: 0.85rem;">INCR page:view</div>
+            </div>
+        </div>
+
+        <div class="re-demo-controls">
+            <button class="re-btn re-btn-play" onclick="rePlayCounterDemo()">&#9654; 播放计数器</button>
+            <button class="re-btn re-btn-reset" onclick="reResetCounterDemo()">&#8634; 重置</button>
+        </div>
+        <div class="re-demo-result" id="re-counter-result">点击播放查看 String 计数器演示</div>
+    </section>
+
+    <!-- Pipeline -->
+    <section class="re-section">
+        <h2 class="re-section-title">Pipeline 批量操作</h2>
+        <p class="re-section-desc">将多次命令打包发送，减少网络 RTT，提升吞吐</p>
+
+        <div class="re-demo-stage">
+            <div class="re-pipeline-compare">
+                <div class="re-pipeline-column" id="re-pipeline-normal">
+                    <h4>普通 10 次请求</h4>
+                    <div class="re-pipeline-timeline">
+                        <div class="re-timeline-row">
+                            <span>RTT</span>
+                            <div class="re-timeline-bar" id="re-normal-bar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="re-packet"></span>
+                        <span class="re-packet"></span>
+                        <span class="re-packet"></span>
+                        <span class="re-packet"></span>
+                        <span class="re-packet"></span>
+                        <span class="re-packet"></span>
+                        <span class="re-packet"></span>
+                        <span class="re-packet"></span>
+                        <span class="re-packet"></span>
+                        <span class="re-packet"></span>
+                    </div>
+                </div>
+                <div class="re-pipeline-column" id="re-pipeline-batched">
+                    <h4>Pipeline 批量请求</h4>
+                    <div class="re-pipeline-timeline">
+                        <div class="re-timeline-row">
+                            <span>RTT</span>
+                            <div class="re-timeline-bar" id="re-pipeline-bar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="re-packet"></span>
+                        <span class="re-packet"></span>
+                        <span class="re-packet"></span>
+                        <span class="re-packet"></span>
+                        <span class="re-packet"></span>
+                        <span class="re-packet"></span>
+                        <span class="re-packet"></span>
+                        <span class="re-packet"></span>
+                        <span class="re-packet"></span>
+                        <span class="re-packet"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="re-demo-controls">
+            <button class="re-btn re-btn-play" onclick="rePlayPipelineDemo()">&#9654; 播放 Pipeline 对比</button>
+            <button class="re-btn re-btn-reset" onclick="reResetPipelineDemo()">&#8634; 重置</button>
+        </div>
+        <div class="re-demo-result" id="re-pipeline-result">点击播放查看 Pipeline 批量操作对比</div>
+    </section>
+
+    <!-- 持久化 -->
+    <section class="re-section">
+        <h2 class="re-section-title">持久化机制</h2>
+        <p class="re-section-desc">RDB 快照与 AOF 日志的对比与选择</p>
+
+        <div class="re-persistence-compare">
+            <div class="re-persistence-card" id="re-rdb-card">
+                <h3>RDB（快照）</h3>
+                <ul>
+                    <li>触发命令：SAVE / BGSAVE</li>
+                    <li>机制：定时快照保存内存数据</li>
+                    <li>文件：二进制，紧凑</li>
+                    <li>恢复速度：快</li>
+                    <li>数据安全：可能丢失最后一次快照后的数据</li>
+                </ul>
+            </div>
+            <div class="re-persistence-card" id="re-aof-card">
+                <h3>AOF（日志）</h3>
+                <ul>
+                    <li>开启：appendonly yes</li>
+                    <li>机制：记录每个写操作</li>
+                    <li>文件：文本日志，较大</li>
+                    <li>恢复速度：相对慢</li>
+                    <li>数据安全：默认 everysec，最多丢 1 秒数据</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="re-demo-controls">
+            <button class="re-btn re-btn-play" onclick="rePlayPersistDemo()">&#9654; 播放持久化对比</button>
+            <button class="re-btn re-btn-reset" onclick="reResetPersistDemo()">&#8634; 重置</button>
+        </div>
+        <div class="re-demo-result" id="re-persist-result">点击播放查看 RDB / AOF 持久化对比</div>
+    </section>
+
+    <!-- Java API -->
+    <section class="re-section">
+        <h2 class="re-section-title">Java 操作 Redis</h2>
+        <p class="re-section-desc">JedisCluster 连接集群与基本读写示例</p>
+
+        <div class="re-card">
+            <h3>JedisCluster 连接示例</h3>
+            <div class="re-code-block">
+<span class="re-code-keyword">Set</span>&lt;HostAndPort&gt; nodes = <span class="re-code-keyword">new</span> HashSet&lt;&gt;();
+nodes.add(<span class="re-code-keyword">new</span> HostAndPort(<span class="re-code-string">"node1"</span>, 6379));
+nodes.add(<span class="re-code-keyword">new</span> HostAndPort(<span class="re-code-string">"node2"</span>, 6379));
+
+<span class="re-code-keyword">JedisCluster</span> jedisCluster = <span class="re-code-keyword">new</span> JedisCluster(nodes);
+jedisCluster.set(<span class="re-code-string">"key"</span>, <span class="re-code-string">"value"</span>);
+String value = jedisCluster.get(<span class="re-code-string">"key"</span>);
+            </div>
+        </div>
+    </section>
+
+    <!-- 实时链路 -->
+    <section class="re-section">
+        <h2 class="re-section-title">实时流处理结果落地</h2>
+        <p class="re-section-desc">Flume → Kafka → Flink → Redis/MySQL → 可视化展示</p>
+
+        <div class="re-scenario-flow">
+            <div class="re-flow-node">
+                <strong>Flume</strong>
+                <span>数据采集</span>
+            </div>
+            <div class="re-arrow">&#8594;</div>
+            <div class="re-flow-node">
+                <strong>Kafka</strong>
+                <span>消息队列</span>
+            </div>
+            <div class="re-arrow">&#8594;</div>
+            <div class="re-flow-node">
+                <strong>Flink</strong>
+                <span>实时计算</span>
+            </div>
+            <div class="re-arrow">&#8594;</div>
+            <div class="re-flow-node">
+                <strong>Redis</strong>
+                <span>高速缓存</span>
+            </div>
+            <div class="re-arrow">&#8594;</div>
+            <div class="re-flow-node">
+                <strong>可视化</strong>
+                <span>实时展示</span>
+            </div>
+        </div>
+    </section>
+
+    <script src="../../assets/js/redis.js"></script>
 </body>
 </html>
